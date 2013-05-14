@@ -256,7 +256,6 @@ choice
 
 config BR2_OPTIMIZE_0
 	bool "optimization level 0"
-	depends on !BR2_PACKAGE_LINUX
 	help
 	  Do not optimize. This is the default.
 

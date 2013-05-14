@@ -4,6 +4,8 @@
 #
 ################################################################################
 CUPS_VERSION = 1.3.9
+#CUPS_VERSION = 1.3.11
+#CUPS_VERSION = 1.4.4
 CUPS_NAME = cups-$(CUPS_VERSION)
 CUPS_DIR = $(BUILD_DIR)/$(CUPS_NAME)
 CUPS_SITE = http://ftp.easysw.com/pub/cups/$(CUPS_VERSION)
@@ -63,7 +65,7 @@ $(DL_DIR)/$(CUPS_SOURCE):
 
 $(CUPS_DIR)/.unpacked: $(DL_DIR)/$(CUPS_SOURCE)
 	$(CUPS_CAT) $(DL_DIR)/$(CUPS_SOURCE) | tar -C $(BUILD_DIR) $(TAR_OPTIONS) -
-	toolchain/patch-kernel.sh $(CUPS_DIR) package/cups/ \*.patch
+	toolchain/patch-kernel.sh $(CUPS_DIR) package/cups/ cups-$(CUPS_VERSION)-\*.patch
 	$(CONFIG_UPDATE) $(CUPS_DIR)
 	touch $@
 
@@ -90,8 +92,8 @@ $(CUPS_DIR)/.configured: $(CUPS_DIR)/.unpacked
 
 $(CUPS_DIR)/.compiled: $(CUPS_DIR)/.configured
 	$(MAKE) CFLAGS="$(CUPS_CFLAGS)" -C $(CUPS_DIR) cups backend berkeley cgi-bin filter \
-	locale monitor notifier pdftops scheduler systemv scripting/php \
-	conf data doc fonts ppd templates
+	locale monitor notifier scheduler systemv scripting/php \
+	conf data doc fonts templates pdftops ppd 
 	touch $@
 
 $(CUPS_DIR)/.installed: $(CUPS_DIR)/.compiled

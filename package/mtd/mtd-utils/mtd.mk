@@ -3,7 +3,7 @@
 # mtd provides jffs2 utilities
 #
 #############################################################
-MTD_VERSION:=1.1.0
+MTD_VERSION:=1.2.0
 MTD_SOURCE:=mtd-utils-$(MTD_VERSION).tar.bz2
 MTD_SITE:=ftp://ftp.infradead.org/pub/mtd-utils
 MTD_HOST_DIR:= $(TOOL_BUILD_DIR)/mtd_orig
@@ -92,22 +92,45 @@ MTD_TARGETS_$(BR2_PACKAGE_MTD_MTD_DEBUG) += mtd_debug
 MTD_TARGETS_$(BR2_PACKAGE_MTD_DOCFDISK) += docfdisk
 MTD_TARGETS_$(BR2_PACKAGE_MTD_DOC_LOADBIOS) += doc_loadbios
 
+MTD_TARGETS_UBI_n :=
+MTD_TARGETS_UBI_y :=
+
+MTD_TARGETS_UBI_$(BR2_PACKAGE_MTD_UBIATTACH) += ubiattach
+MTD_TARGETS_UBI_$(BR2_PACKAGE_MTD_UBICRC32) += ubicrc32
+MTD_TARGETS_UBI_$(BR2_PACKAGE_MTD_UBIDETACH) += ubidetach
+MTD_TARGETS_UBI_$(BR2_PACKAGE_MTD_UBIMIRROR) += ubimirror
+MTD_TARGETS_UBI_$(BR2_PACKAGE_MTD_UBIMKVOL) += ubimkvol
+MTD_TARGETS_UBI_$(BR2_PACKAGE_MTD_UBINFO) += ubinfo
+MTD_TARGETS_UBI_$(BR2_PACKAGE_MTD_UBIRMVOL) += ubirmvol
+MTD_TARGETS_UBI_$(BR2_PACKAGE_MTD_UBIUPDATEVOL) += ubiupdatevol
+
 MTD_BUILD_TARGETS := $(addprefix $(MTD_DIR)/, $(MTD_TARGETS_y))
+MTD_UBI_BUILD_TARGETS := $(addprefix $(MTD_DIR)/ubi-utils/, $(MTD_TARGETS_UBI_y))
+
+$(MTD_UBI_BUILD_TARGETS): $(MTD_DIR)/.unpacked
+	$(MAKE1) CFLAGS="-DNEED_BCOPY -Dbcmp=memcmp -I$(STAGING_DIR)/usr/include -Iinc -Isrc -I../include -I../../../include $(TARGET_CFLAGS) -DHOST_OS_NAME='\"Linux\"' -DHOST_VERSION_NAME='\"2.6.28.4\"' -DBUILD_CPU='\"x86\"' -DBUILD_OS='\"Linux\"' -DPACKAGE_VERSION='\"1.0\"'" \
+		LDFLAGS="$(TARGET_LDFLAGS)" \
+		CROSS=$(TARGET_CROSS) CC=$(TARGET_CC) LINUXDIR=$(LINUX26_DIR) WITHOUT_XATTR=1 -C $(MTD_DIR)/ubi-utils/
 
 $(MTD_BUILD_TARGETS): $(MTD_DIR)/.unpacked
 	mkdir -p $(TARGET_DIR)/usr/sbin
-	$(MAKE) CFLAGS="-I. -I./include -I$(LINUX_HEADERS_DIR)/include -I$(STAGING_DIR)/usr/include $(TARGET_CFLAGS)" \
+	$(MAKE1) CFLAGS="-DNEED_BCOPY -Dbcmp=memcmp -I$(STAGING_DIR)/usr/include -Iinclude -Isrc -I../../include $(TARGET_CFLAGS)" \
 		LDFLAGS="$(TARGET_LDFLAGS)" \
 		BUILDDIR=$(MTD_DIR) \
 		CROSS=$(TARGET_CROSS) CC=$(TARGET_CC) LINUXDIR=$(LINUX26_DIR) WITHOUT_XATTR=1 -C $(MTD_DIR)
 
 MTD_TARGETS := $(addprefix $(TARGET_DIR)/usr/sbin/, $(MTD_TARGETS_y))
+MTD_UBI_TARGETS := $(addprefix $(TARGET_DIR)/usr/sbin/, $(MTD_TARGETS_UBI_y))
 
 $(MTD_TARGETS): $(TARGET_DIR)/usr/sbin/% : $(MTD_DIR)/%
 	cp -f $< $@
 	$(STRIPCMD) $@
 
-mtd: zlib $(MTD_TARGETS)
+$(MTD_UBI_TARGETS): $(TARGET_DIR)/usr/sbin/% : $(MTD_DIR)/ubi-utils/%
+	cp -f $< $@
+	$(STRIPCMD) $@
+
+mtd: zlib lzo $(MTD_TARGETS) $(MTD_UBI_TARGETS)
 
 mtd-source: $(DL_DIR)/$(MTD_SOURCE)
 

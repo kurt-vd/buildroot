@@ -9,9 +9,9 @@ OPENSSL_SITE:=http://www.openssl.org/source
 OPENSSL_TARGET_ARCH=generic32
 
 # Some architectures are optimized in OpenSSL
-ifeq ($(BR2_ARCH),avr32)
-OPENSSL_TARGET_ARCH=avr32
-endif
+#ifeq ($(BR2_ARCH),avr32)
+#OPENSSL_TARGET_ARCH=avr32
+#endif
 ifeq ($(BR2_ARCH),ia64)
 OPENSSL_TARGET_ARCH=ia64
 endif
@@ -44,7 +44,7 @@ $(OPENSSL_TARGET_CONFIGURE):
 			no-idea \
 			no-mdc2 \
 			no-rc5 \
-			zlib-dynamic \
+			zlib \
 	)
 	touch $@
 

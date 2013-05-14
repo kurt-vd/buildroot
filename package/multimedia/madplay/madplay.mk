@@ -13,10 +13,10 @@ MADPLAY_TARGET_BIN:=usr/bin/$(MADPLAY_BIN)
 
 # Check if ALSA is built, then we should configure after alsa-lib so
 # ./configure can find alsa-lib.
-ifeq ($(BR2_PACKAGE_MADPLAY_ALSA),y)
-MADPLAY_USE_ALSA:=--with-alsa
-MADPLAY_ALSA_DEP:=alsa-lib
-endif
+#ifeq ($(BR2_PACKAGE_MADPLAY_ALSA),y)
+#MADPLAY_USE_ALSA:=--with-alsa
+#MADPLAY_ALSA_DEP:=alsa-lib
+#endif
 
 $(DL_DIR)/$(MADPLAY_SOURCE):
 	 $(call DOWNLOAD,$(MADPLAY_SITE),$(MADPLAY_SOURCE))

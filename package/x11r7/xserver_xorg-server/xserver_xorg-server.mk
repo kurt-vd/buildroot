@@ -12,8 +12,8 @@ XSERVER_XORG_SERVER_INSTALL_STAGING = YES
 XSERVER_XORG_SERVER_USE_CONFIG_CACHE = NO # overrides CFLAGS
 
 ifeq ($(BR2_PACKAGE_XSERVER_xorg),y)
-XSERVER_XORG_MESA_DEPS:=mesa3d
-XSERVER_XORG_MESA_DIR:=--with-mesa-source="$(BUILD_DIR)/Mesa-$(MESA3D_VERSION)"
+#XSERVER_XORG_MESA_DEPS:=mesa3d
+#XSERVER_XORG_MESA_DIR:=--with-mesa-source="$(BUILD_DIR)/Mesa-$(MESA3D_VERSION)"
 XSERVER_XORG_ENABLE_MODULAR:=--enable-xorg
 else
 XSERVER_XORG_ENABLE_MODULAR:=--disable-xorg
@@ -49,6 +49,7 @@ XSERVER_XORG_SERVER_CONF_OPT = $(XSERVER_XORG_ENABLE_KDRIVE) \
 		--enable-freetype $(XSERVER_XORG_ENABLE_MODULAR) \
 		--disable-config-hal $(XSERVER_XORG_MESA_DIR) \
 		--disable-xnest --disable-xephyr --disable-xvfb \
+		--disable-dri \
 		$(XSERVER_XORG_NULL_CURSOR) \
 		CFLAGS="-I$(STAGING_DIR)/usr/include/pixman-1"
 

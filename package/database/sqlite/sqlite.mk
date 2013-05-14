@@ -39,11 +39,12 @@ $(SQLITE_DIR)/.configured: $(SQLITE_DIR)/.unpacked
 		--enable-tempstore \
 		--enable-threadsafe \
 		--enable-releasemode \
+		--enable-load-extension \
 	)
 	touch $(SQLITE_DIR)/.configured
 
 $(SQLITE_DIR)/sqlite3: $(SQLITE_DIR)/.configured
-	$(MAKE) -C $(SQLITE_DIR)
+	$(MAKE) TLIBS="-lpthread -ldl" -C $(SQLITE_DIR)
 
 $(STAGING_DIR)/usr/bin/sqlite3: $(SQLITE_DIR)/sqlite3
 	$(MAKE) DESTDIR=$(STAGING_DIR) -C $(SQLITE_DIR) install

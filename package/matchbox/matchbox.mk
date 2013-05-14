@@ -196,12 +196,12 @@ else
   MATCHBOX_LIB_OPTS+=--disable-png
 endif
 
-ifeq ($(BR2_PACKAGE_PANGO),y)
-  MATCHBOX_LIB_OPTS+=--enable-pango
-  MATCHBOX_LIB_DEPS+=pango
-else
+#ifeq ($(BR2_PACKAGE_PANGO),y)
+#  MATCHBOX_LIB_OPTS+=--enable-pango
+#  MATCHBOX_LIB_DEPS+=pango
+#else
   MATCHBOX_LIB_OPTS+=--disable-pango
-endif
+#endif
 
 ifeq ($(BR2_PACKAGE_X11R7_LIBXFT2),y)
   MATCHBOX_LIB_OPTS+=--enable-xft
@@ -471,6 +471,7 @@ $(STAGING_DIR)/usr/lib/libmb.so: $(MATCHBOX_LIB_DIR)/.compiled
 	libdir=/usr/lib \
 	includedir=/usr/include \
 	install
+	DESTDIR=$(STAGING_DIR) \
 	$(SED) "s:\(['= ]\)/usr:\1$(STAGING_DIR)/usr:g" $(STAGING_DIR)/usr/lib/libmb.la
 
 $(STAGING_DIR)/usr/lib/$(MATCHBOX_SNOTIFY_BIN): $(MATCHBOX_SNOTIFY_DIR)/.compiled
@@ -480,6 +481,7 @@ $(STAGING_DIR)/usr/lib/$(MATCHBOX_SNOTIFY_BIN): $(MATCHBOX_SNOTIFY_DIR)/.compile
 	datadir=/usr/share \
 	libdir=/usr/lib \
 	includedir=/usr/include \
+	DESTDIR=$(STAGING_DIR) \
 	install
 
 $(STAGING_DIR)/usr/bin/$(MATCHBOX_WM_BIN): $(MATCHBOX_WM_DIR)/.compiled
@@ -489,6 +491,7 @@ $(STAGING_DIR)/usr/bin/$(MATCHBOX_WM_BIN): $(MATCHBOX_WM_DIR)/.compiled
 	datadir=/usr/share/matchbox \
 	libdir=/usr/lib \
 	includedir=/usr/include \
+	DESTDIR=$(STAGING_DIR) \
 	install
 
 $(STAGING_DIR)/usr/bin/$(MATCHBOX_SM_BIN): $(MATCHBOX_SM_DIR)/.compiled
@@ -498,6 +501,7 @@ $(STAGING_DIR)/usr/bin/$(MATCHBOX_SM_BIN): $(MATCHBOX_SM_DIR)/.compiled
 	datadir=/usr/share/matchbox \
 	libdir=/usr/lib \
 	includedir=/usr/include \
+	DESTDIR=$(STAGING_DIR) \
 	install
 
 $(STAGING_DIR)/usr/bin/matchbox-session: $(MATCHBOX_CN_DIR)/.compiled
@@ -507,6 +511,7 @@ $(STAGING_DIR)/usr/bin/matchbox-session: $(MATCHBOX_CN_DIR)/.compiled
 	datadir=/usr/share/matchbox \
 	libdir=/usr/lib \
 	includedir=/usr/include \
+	DESTDIR=$(STAGING_DIR) \
 	install
 
 $(STAGING_DIR)/usr/bin/$(MATCHBOX_PL_BIN): $(MATCHBOX_PL_DIR)/.compiled
@@ -516,6 +521,7 @@ $(STAGING_DIR)/usr/bin/$(MATCHBOX_PL_BIN): $(MATCHBOX_PL_DIR)/.compiled
 	datadir=/usr/share/matchbox \
 	libdir=/usr/lib \
 	includedir=/usr/include \
+	DESTDIR=$(STAGING_DIR) \
 	install
 
 $(STAGING_DIR)/usr/bin/$(MATCHBOX_DP_BIN): $(MATCHBOX_DP_DIR)/.compiled
@@ -525,6 +531,7 @@ $(STAGING_DIR)/usr/bin/$(MATCHBOX_DP_BIN): $(MATCHBOX_DP_DIR)/.compiled
 	datadir=/usr/share/matchbox \
 	libdir=/usr/lib \
 	includedir=/usr/include \
+	DESTDIR=$(STAGING_DIR) \
 	install
 
 $(STAGING_DIR)/usr/lib/$(MATCHBOX_FK_BIN).so: $(MATCHBOX_FK_DIR)/.compiled
@@ -534,6 +541,7 @@ $(STAGING_DIR)/usr/lib/$(MATCHBOX_FK_BIN).so: $(MATCHBOX_FK_DIR)/.compiled
 	datadir=/usr/share/matchbox \
 	libdir=/usr/lib \
 	includedir=/usr/include \
+	DESTDIR=$(STAGING_DIR) \
 	install
 
 $(STAGING_DIR)/usr/bin/$(MATCHBOX_KB_BIN): $(MATCHBOX_KB_DIR)/.compiled
@@ -543,6 +551,7 @@ $(STAGING_DIR)/usr/bin/$(MATCHBOX_KB_BIN): $(MATCHBOX_KB_DIR)/.compiled
 	datadir=/usr/share/matchbox \
 	libdir=/usr/lib \
 	includedir=/usr/include \
+	DESTDIR=$(STAGING_DIR) \
 	install
 
 $(TARGET_DIR)/usr/lib/libmb.so: $(STAGING_DIR)/usr/lib/libmb.so
@@ -583,14 +592,14 @@ $(TARGET_DIR)/usr/bin/$(MATCHBOX_PL_BIN): $(STAGING_DIR)/usr/bin/$(MATCHBOX_PL_B
 $(TARGET_DIR)/usr/bin/$(MATCHBOX_DP_BIN): $(STAGING_DIR)/usr/bin/$(MATCHBOX_DP_BIN)
 	cp -dpf $(STAGING_DIR)/usr/bin/$(MATCHBOX_DP_BIN) $(TARGET_DIR)/usr/bin/
 	-$(STRIPCMD) $(STRIP_STRIP_UNNEEDED) $(TARGET_DIR)/usr/bin/$(MATCHBOX_DP_BIN)
-	cp -dpf $(STAGING_DIR)/usr/lib/dotdesktop.so $(TARGET_DIR)/usr/lib/
-	-$(STRIPCMD) $(STRIP_STRIP_UNNEEDED) $(TARGET_DIR)/usr/lib/dotdesktop.so
 	cp -dpf $(STAGING_DIR)/usr/lib/simplefilebrowser.so $(TARGET_DIR)/usr/lib/
 	-$(STRIPCMD) $(STRIP_STRIP_UNNEEDED) $(TARGET_DIR)/usr/lib/simplefilebrowser.so
 	cp -dpf $(STAGING_DIR)/usr/lib/tasks.so $(TARGET_DIR)/usr/lib/
 	-$(STRIPCMD) $(STRIP_STRIP_UNNEEDED) $(TARGET_DIR)/usr/lib/tasks.so
 	cp -af $(STAGING_DIR)/usr/share/matchbox/* $(TARGET_DIR)/usr/share/matchbox/
 	cp -f ./package/matchbox/mbdesktop_modules $(TARGET_DIR)/etc/matchbox/
+#	cp -dpf $(STAGING_DIR)/usr/lib/dotdesktop.so $(TARGET_DIR)/usr/lib/
+#	-$(STRIPCMD) $(STRIP_STRIP_UNNEEDED) $(TARGET_DIR)/usr/lib/dotdesktop.so
 
 $(TARGET_DIR)/usr/lib/$(MATCHBOX_FK_BIN).so: $(STAGING_DIR)/usr/lib/$(MATCHBOX_FK_BIN).so
 	cp -dpf $(STAGING_DIR)/usr/lib/$(MATCHBOX_FK_BIN).so* $(TARGET_DIR)/usr/lib/

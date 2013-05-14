@@ -60,10 +60,10 @@ $(MPLAYER_DIR)/.configured: $(MPLAYER_DIR)/.unpacked
 		$(MPLAYER_ENDIAN) \
 		$(MPLAYER_LARGEFILE) \
 		--enable-cross-compile \
-		--disable-mpdvdkit \
 		--disable-ivtv \
 		--disable-tv \
 		--enable-dynamic-plugins \
+		--disable-fontconfig \
 	)
 	touch $@
 

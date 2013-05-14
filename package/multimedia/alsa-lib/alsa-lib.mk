@@ -3,7 +3,7 @@
 # alsa-lib
 #
 #############################################################
-ALSA_LIB_VERSION:=1.0.18
+ALSA_LIB_VERSION:=1.0.23
 ALSA_LIB_SOURCE:=alsa-lib-$(ALSA_LIB_VERSION).tar.bz2
 ALSA_LIB_SITE:=ftp://ftp.alsa-project.org/pub/lib
 ALSA_LIB_DIR:=$(BUILD_DIR)/alsa-lib-$(ALSA_LIB_VERSION)
@@ -13,9 +13,9 @@ ALSA_LIB_TARGET_BINARY:=usr/lib/$(ALSA_LIB_BINARY)
 
 ALSA_LIB_CFLAGS=$(TARGET_CFLAGS)
 
-ifeq ($(BR2_arm),y)
-ALSA_LIB_CFLAGS+=-mabi=aapcs-linux
-endif
+#ifeq ($(BR2_arm),y)
+#ALSA_LIB_CFLAGS+=-mabi=aapcs-linux
+#endif
 
 ifeq ($(BR2_avr32),y)
 ALSA_LIB_CFLAGS+=-DAVR32_INLINE_BUG

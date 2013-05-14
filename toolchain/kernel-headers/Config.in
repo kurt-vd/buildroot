@@ -71,6 +71,9 @@ choice
 	config BR2_KERNEL_HEADERS_2_6_28
 		bool "Linux 2.6.28.x kernel headers"
 
+	config BR2_KERNEL_HEADERS_2_6_33
+		bool "Linux 2.6.33.x kernel headers"
+
 	config BR2_KERNEL_HEADERS_SNAP
 		bool "Linux 2.6 snapshot"
 
@@ -98,7 +101,7 @@ config BR2_KERNEL_HEADERS_RT
 
 config BR2_KERNEL_HEADERS_PATCH_DIR
 	bool "Add additional headers from $(KERNEL_HEADERS_PATCH_DIR)"
-	depends on BR2_KERNEL_HEADERS_2_6_20_4 || BR2_KERNEL_HEADERS_2_6_21_5 || BR2_KERNEL_HEADERS_2_6_22_1  || BR2_KERNEL_HEADERS_2_6_22_10 || BR2_KERNEL_HEADERS_2_6_28
+	depends on BR2_KERNEL_HEADERS_2_6_20_4 || BR2_KERNEL_HEADERS_2_6_21_5 || BR2_KERNEL_HEADERS_2_6_22_1  || BR2_KERNEL_HEADERS_2_6_22_10 || BR2_KERNEL_HEADERS_2_6_28 || BR2_KERNEL_HEADERS_2_6_28
 	help
 	  Apply additional kernel patches defined by KERNEL_HEADERS_PATCH_DIR
 	  in your board directory.
@@ -119,5 +122,6 @@ config BR2_DEFAULT_KERNEL_HEADERS
 	default "2.6.26.8"	if BR2_KERNEL_HEADERS_2_6_26
 	default "2.6.27.15"	if BR2_KERNEL_HEADERS_2_6_27
 	default "2.6.28.4"	if BR2_KERNEL_HEADERS_2_6_28
+	default "2.6.33.2"	if BR2_KERNEL_HEADERS_2_6_33
 	default "2.6"		if BR2_KERNEL_HEADERS_SNAP
 

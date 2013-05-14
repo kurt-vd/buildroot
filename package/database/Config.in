@@ -1,4 +1,5 @@
 menu "Database"
 source "package/database/mysql_client/Config.in"
 source "package/database/sqlite/Config.in"
+source "package/database/sqlitedbms/Config.in"
 endmenu

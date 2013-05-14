@@ -8,7 +8,8 @@ OPENSSH_SITE=ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable
 
 OPENSSH_CONF_ENV = LD=$(TARGET_CC)
 OPENSSH_CONF_OPT = --libexecdir=/usr/lib --disable-lastlog --disable-utmp \
-		--disable-utmpx --disable-wtmp --disable-wtmpx --without-x
+		--disable-utmpx --disable-wtmp --disable-wtmpx --without-x \
+		--without-stackprotect
 
 OPENSSH_INSTALL_TARGET_OPT = DESTDIR=$(TARGET_DIR) install
 

@@ -69,6 +69,6 @@ endmenu
 
 source "target/device/Atmel/DataFlashBoot/Config.in"
 
-source "target/device/Atmel/at91bootstrap/Config.in"
+# source "target/device/Atmel/at91bootstrap/Config.in"
 
 endif

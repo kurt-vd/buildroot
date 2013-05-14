@@ -1,18 +1,19 @@
-#############################################################
+###########################################################
 #
 # directfb
 #
 #############################################################
-DIRECTFB_VERSION_MAJOR:=1.2
-DIRECTFB_VERSION:=1.2.7
-#DIRECTFB_VERSION:=1.3.0	is a development version
-#DIRECTFB_VERSION_MAJOR:=1.3
-DIRECTFB_SITE:=http://www.directfb.org/downloads/Core
+DIRECTFB_VERSION:=1.3.0
+DIRECTFB_VERSION_MAJOR:=1.3
+#DIRECTFB_VERSION:=1.4.2
+#DIRECTFB_VERSION_MAJOR:=1.4
+DIRECTFB_SITE:=http://www.directfb.org/downloads/Core/DirectFB-$(DIRECTFB_VERSION_MAJOR)/
 DIRECTFB_SOURCE:=DirectFB-$(DIRECTFB_VERSION).tar.gz
-DIRECTFB_AUTORECONF = NO
-DIRECTFB_LIBTOOL_PATCH = NO
+DIRECTFB_AUTORECONF = YES
+DIRECTFB_LIBTOOL_PATCH = YES
 DIRECTFB_INSTALL_STAGING = YES
 DIRECTFB_INSTALL_TARGET = YES
+DIRECTFB_INSTALL_TARGET_OPT = install DESTDIR=$(TARGET_DIR)
 
 ifeq ($(BR2_PACKAGE_DIRECTFB_MULTI),y)
 DIRECTFB_MULTI:=--enable-multi --enable-fusion
@@ -56,6 +57,9 @@ DIRECTFB_GFX:=$(subst $(space),$(comma),$(strip $(DIRECTFB_GFX)))
 endif
 
 DIRECTFB_INPUT:=
+ifeq ($(BR2_PACKAGE_DIRECTFB_LINUXINPUT),y)
+DIRECTFB_INPUT+= linuxinput
+endif
 ifeq ($(BR2_PACKAGE_DIRECTFB_KEYBOARD),y)
 DIRECTFB_INPUT+= keyboard
 endif

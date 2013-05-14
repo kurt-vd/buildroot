@@ -18,6 +18,8 @@ $(DL_DIR)/$(VIM_SOURCE):
 
 $(DL_DIR)/vim/%:
 	$(call DOWNLOAD,$(VIM_PATCH_SITE),$*)
+	@mkdir -p $(DL_DIR)/vim
+	@mv $(DL_DIR)/$* $(DL_DIR)/vim/
 
 vim-source: $(DL_DIR)/$(VIM_SOURCE) $(VIM_PATCHES)
 
