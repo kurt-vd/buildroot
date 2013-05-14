@@ -1,0 +1,190 @@
+diff -Naur DirectFB-1.3.0/inputdrivers/linux_input/linux_input.c DirectFB-1.3.0_patched/inputdrivers/linux_input/linux_input.c
+--- DirectFB-1.3.0/inputdrivers/linux_input/linux_input.c	2008-09-27 01:32:25.000000000 +0200
++++ DirectFB-1.3.0_patched/inputdrivers/linux_input/linux_input.c	2009-03-13 14:58:13.000000000 +0100
+@@ -329,7 +329,7 @@
+      TOUCHPAD_FSM_DRAG_MAIN,
+ };
+ struct touchpad_axis {
+-     int old, min, max;
++     int old, min, max, res;
+ };
+ struct touchpad_fsm_state {
+      int fsm_state;
+@@ -801,6 +801,10 @@
+           ioctl( data->fd, EVIOCGABS(ABS_Y), &absinfo );
+           fsm_state.y.min = absinfo.minimum;
+           fsm_state.y.max = absinfo.maximum;
++	  /* TODO read from actual settings */
++	  fsm_state.x.res = 320;
++	  fsm_state.y.res = 240;
++
+      }
+ 
+      while (1) {
+@@ -1007,7 +1011,7 @@
+      /* FIXME: can we rely on BTN_TOUCH? xorg synaptics driver doesn't use it. */
+      if (test_bit( EV_KEY, evbit ) &&
+          test_bit( BTN_TOUCH, keybit ) &&
+-         test_bit( BTN_TOOL_FINGER, keybit) &&
++         /*test_bit( BTN_TOOL_FINGER, keybit) &&*/
+          test_bit( EV_ABS, evbit ) &&
+          test_bit( ABS_X, absbit ) &&
+          test_bit( ABS_Y, absbit ) &&
+@@ -1408,7 +1412,7 @@
+ static int
+ touchpad_normalize( const struct touchpad_axis *axis, int value )
+ {
+-     return ((value - axis->min) << 9) / (axis->max - axis->min);
++     return axis->res * (value - axis->min) / (axis->max - axis->min);
+ }
+ 
+ static int
+@@ -1419,7 +1423,7 @@
+      struct touchpad_axis *axis = NULL;
+      int abs, rel;
+ 
+-     devt->flags     = DIEF_TIMESTAMP | DIEF_AXISREL;
++     devt->flags     = DIEF_TIMESTAMP | DIEF_AXISABS;
+      devt->timestamp = levt->time;
+      devt->type      = DIET_AXISMOTION;
+ 
+@@ -1439,19 +1443,9 @@
+      abs = touchpad_normalize( axis, levt->value );
+      if (axis->old == -1)
+           axis->old = abs;
+-     rel = abs - axis->old;
+-
+-#define ACCEL_THRESHOLD 25
+-#define ACCEL_NUM       3
+-#define ACCEL_DENOM     1
+-
+-     if (rel > ACCEL_THRESHOLD)
+-          rel += (rel - ACCEL_THRESHOLD) * ACCEL_NUM / ACCEL_DENOM;
+-     else if (rel < -ACCEL_THRESHOLD)
+-          rel += (rel + ACCEL_THRESHOLD) * ACCEL_NUM / ACCEL_DENOM;
+ 
+      axis->old     = abs;
+-     devt->axisrel = rel;
++     devt->axisabs = abs;
+ 
+      return 1;
+ }
+diff -Naur DirectFB-1.3.0/src/misc/gfx_util.c DirectFB-1.3.0_patched/src/misc/gfx_util.c
+--- DirectFB-1.3.0/src/misc/gfx_util.c	2008-09-27 01:32:25.000000000 +0200
++++ DirectFB-1.3.0_patched/src/misc/gfx_util.c	2009-03-13 14:57:09.000000000 +0100
+@@ -178,7 +178,7 @@
+ 
+           case DSPF_RGB24:
+                for (i = 0; i < len; i++) {
+-#ifdef WORDS_BIGENDIAN
++#ifndef WORDS_BIGENDIAN
+                     *d++ = src[i] >> 16;
+                     *d++ = src[i] >> 8;
+                     *d++ = src[i];
+diff -Naur DirectFB-1.3.0/systems/fbdev/fbdev.c DirectFB-1.3.0_patched/systems/fbdev/fbdev.c
+--- DirectFB-1.3.0/systems/fbdev/fbdev.c	2008-09-27 01:32:25.000000000 +0200
++++ DirectFB-1.3.0_patched/systems/fbdev/fbdev.c	2009-03-13 15:03:29.000000000 +0100
+@@ -30,6 +30,7 @@
+ 
+ #include <asm/types.h>    /* Needs to be included before dfb_types.h */
+ 
++#include <sys/syscall.h>
+ #include <unistd.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -460,7 +461,7 @@
+      ret = DFB_INIT;
+ 
+      /* Retrieve fixed informations like video ram size */
+-     if (ioctl( dfb_fbdev->fd, FBIOGET_FSCREENINFO, &shared->fix ) < 0) {
++     if (syscall( __NR_ioctl, dfb_fbdev->fd, FBIOGET_FSCREENINFO, &shared->fix ) < 0) {
+           D_PERROR( "DirectFB/FBDev: "
+                     "Could not get fixed screen information!\n" );
+           goto error;
+@@ -477,7 +478,7 @@
+           goto error;
+      }
+ 
+-     if (ioctl( dfb_fbdev->fd, FBIOGET_VSCREENINFO, &shared->orig_var ) < 0) {
++     if (syscall( __NR_ioctl, dfb_fbdev->fd, FBIOGET_VSCREENINFO, &shared->orig_var ) < 0) {
+           D_PERROR( "DirectFB/FBDev: "
+                     "Could not get variable screen information!\n" );
+           goto error;
+@@ -486,7 +487,7 @@
+      shared->current_var = shared->orig_var;
+      shared->current_var.accel_flags = 0;
+ 
+-     if (ioctl( dfb_fbdev->fd, FBIOPUT_VSCREENINFO, &shared->current_var ) < 0) {
++     if (syscall( __NR_ioctl, dfb_fbdev->fd, FBIOPUT_VSCREENINFO, &shared->current_var ) < 0) {
+           D_PERROR( "DirectFB/FBDev: "
+                     "Could not disable console acceleration!\n" );
+           goto error;
+@@ -508,7 +509,7 @@
+      shared->orig_cmap.blue   = shared->orig_cmap_memory + 256 * 2 * 2;
+      shared->orig_cmap.transp = shared->orig_cmap_memory + 256 * 2 * 3;
+ 
+-     if (ioctl( dfb_fbdev->fd, FBIOGETCMAP, &shared->orig_cmap ) < 0) {
++     if (syscall( __NR_ioctl, dfb_fbdev->fd, FBIOGETCMAP, &shared->orig_cmap ) < 0) {
+           D_DEBUG( "DirectFB/FBDev: "
+                    "Could not retrieve palette for backup!\n" );
+ 
+@@ -694,13 +695,13 @@
+           m = next;
+      }
+ 
+-     if (ioctl( dfb_fbdev->fd, FBIOPUT_VSCREENINFO, &shared->orig_var ) < 0) {
++     if (syscall( __NR_ioctl, dfb_fbdev->fd, FBIOPUT_VSCREENINFO, &shared->orig_var ) < 0) {
+           D_PERROR( "DirectFB/FBDev: "
+                     "Could not restore variable screen information!\n" );
+      }
+ 
+      if (shared->orig_cmap.len) {
+-          if (ioctl( dfb_fbdev->fd, FBIOPUTCMAP, &shared->orig_cmap ) < 0)
++          if (syscall( __NR_ioctl, dfb_fbdev->fd, FBIOPUTCMAP, &shared->orig_cmap ) < 0)
+                D_DEBUG( "DirectFB/FBDev: "
+                         "Could not restore palette!\n" );
+      }
+@@ -1032,7 +1033,7 @@
+      if (dfb_config->pollvsync_none)
+           return DFB_OK;
+ 
+-     if (ioctl( dfb_fbdev->fd, FBIO_WAITFORVSYNC, &zero ))
++     if (syscall( __NR_ioctl, dfb_fbdev->fd, FBIO_WAITFORVSYNC, &zero ))
+           waitretrace();
+ 
+      return DFB_OK;
+@@ -1470,6 +1471,8 @@
+           case 24:
+                if (dfb_fbdev_compatible_format( var, 0, 8, 8, 8, 0, 16, 8, 0 ))
+                     return DSPF_RGB24;
++               if (dfb_fbdev_compatible_format( var, 0, 8, 8, 8, 0, 0, 8, 16 ))
++                    return DSPF_RGB24;
+ 
+                if (dfb_fbdev_compatible_format( var, 6, 6, 6, 6, 18, 12, 6, 0 ))
+                     return DSPF_ARGB6666;
+@@ -1569,7 +1572,7 @@
+ static DFBResult
+ dfb_fbdev_blank( int level )
+ {
+-     if (ioctl( dfb_fbdev->fd, FBIOBLANK, level ) < 0) {
++     if (syscall( __NR_ioctl, dfb_fbdev->fd, FBIOBLANK, level ) < 0) {
+           D_PERROR( "DirectFB/FBDev: Display blanking failed!\n" );
+ 
+           return errno2result( errno );
+@@ -2588,14 +2591,14 @@
+                ioctl( dfb_fbdev->vt->fd, KDSETMODE, KD_GRAPHICS );
+      }
+ 
+-     ret = ioctl( dfb_fbdev->fd, call_arg, call_ptr );
++     ret = syscall( __NR_ioctl, dfb_fbdev->fd, call_arg, call_ptr );
+      if (ret)
+           ret = errno;
+ 
+      if (dfb_config->vt) {
+           if (call_arg == FBIOPUT_VSCREENINFO) {
+                if (!dfb_config->kd_graphics) {
+-                    ioctl( dfb_fbdev->vt->fd, KDSETMODE, KD_TEXT );
++		   syscall( __NR_ioctl, dfb_fbdev->vt->fd, KDSETMODE, KD_TEXT );
+                     write( dfb_fbdev->vt->fd, cursoroff_str, strlen(cursoroff_str) );
+                     write( dfb_fbdev->vt->fd, blankoff_str, strlen(blankoff_str) );
+                }

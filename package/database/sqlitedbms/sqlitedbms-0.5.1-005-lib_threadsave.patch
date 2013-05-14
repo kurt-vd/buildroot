@@ -1,0 +1,279 @@
+diff -Naur sqlitedbms-0.5.1/src/lib/sqlited_conn.c sqlitedbms-0.5.1.new/src/lib/sqlited_conn.c
+--- sqlitedbms-0.5.1/src/lib/sqlited_conn.c	2006-06-25 16:17:14.000000000 +0200
++++ sqlitedbms-0.5.1.new/src/lib/sqlited_conn.c	2009-10-23 16:04:09.000000000 +0200
+@@ -150,6 +150,7 @@
+ 			strncpy( pDb->session_key, pDb->response.cookie, len );
+ 		}
+ 	}
++	pthread_mutex_init(&((*db)->lock), NULL);
+ 
+ 	return SQLITED_OK;
+ }
+@@ -182,6 +183,7 @@
+ 		}
+ 		free( res );
+ 	}
++	pthread_mutex_destroy(&db->lock);
+ 	free( db );
+ 	db = NULL;
+ }
+diff -Naur sqlitedbms-0.5.1/src/lib/sqlited_pstmt.c sqlitedbms-0.5.1.new/src/lib/sqlited_pstmt.c
+--- sqlitedbms-0.5.1/src/lib/sqlited_pstmt.c	2009-10-23 16:16:24.000000000 +0200
++++ sqlitedbms-0.5.1.new/src/lib/sqlited_pstmt.c	2009-10-23 16:04:34.000000000 +0200
+@@ -12,6 +12,7 @@
+ 	unsigned long		id;
+ 	sqlited_pstmt		*find;
+ 
++	pthread_mutex_lock(&db->lock);
+ 	_sqlited_buf_init( db, length );
+ 
+ 	gettimeofday( &time, NULL );
+@@ -25,6 +26,7 @@
+ 	if ( result != SQLITED_OK )
+ 	{
+ 		db->errmsg = strerror( errno );
++		pthread_mutex_unlock(&db->lock);
+ 		return SQLITED_ERROR;
+ 	}
+ 
+@@ -52,24 +54,32 @@
+ 		(*pstmt)->db = db;
+ 		(*pstmt)->next = NULL;
+ 		(*pstmt)->result = NULL;
++		pthread_mutex_unlock(&db->lock);
+ 		return SQLITED_OK;
+ 	}
+ 	else
++	{
++		pthread_mutex_unlock(&db->lock);
+ 		return SQLITED_ERROR;
++	}
+ }
+ 
+ int sqlited_bind_blob( sqlited_pstmt *pstmt, int seq, const void *value, int length )
+ {
+ 	char	extend[REQUEST_EXTEND_LEN];
++	int ret;
++
++	if ( pstmt == NULL )
++		return SQLITED_ERROR;
+ 
++	pthread_mutex_lock(&pstmt->db->lock);
+ 	snprintf( extend, REQUEST_EXTEND_LEN, "/%lu/%d/BLOB", pstmt->id, seq );
+ 	pstmt->db->send_length = _sqlited_make_body( pstmt->db, value, length );
+ 	pstmt->db->send_length += _sqlited_make_header( pstmt->db, SQLITED_METHOD_OPTION, extend );
+ 
+-	if ( pstmt == NULL )
+-		return SQLITED_ERROR;
+-
+-	return _sqlited_pstmt_request( pstmt );
++	ret = _sqlited_pstmt_request( pstmt );
++	pthread_mutex_unlock(&pstmt->db->lock);
++	return ret;
+ }
+ 
+ int sqlited_bind_double( sqlited_pstmt *pstmt, int seq, double value )
+@@ -77,16 +87,20 @@
+ 	char	extend[REQUEST_EXTEND_LEN];
+ 	char	data[64];
+ 	size_t	data_len;
++	int ret;
+ 
+ 	if ( pstmt == NULL )
+ 		return SQLITED_ERROR;
+ 
++	pthread_mutex_lock(&pstmt->db->lock);
+ 	snprintf( extend, REQUEST_EXTEND_LEN, "/%lu/%d/DOUBLE", pstmt->id, seq );
+ 	data_len = snprintf( data, 64, "%f", value );
+ 	pstmt->db->send_length = _sqlited_make_body( pstmt->db, data, data_len );
+ 	pstmt->db->send_length += _sqlited_make_header( pstmt->db, SQLITED_METHOD_OPTION, extend );
+ 
+-	return _sqlited_pstmt_request( pstmt );
++	ret = _sqlited_pstmt_request( pstmt );
++	pthread_mutex_unlock(&pstmt->db->lock);
++	return ret;
+ }
+ 
+ int sqlited_bind_int( sqlited_pstmt *pstmt, int seq, int value )
+@@ -94,16 +108,20 @@
+ 	char	extend[REQUEST_EXTEND_LEN];
+ 	char	data[64];
+ 	size_t	data_len;
++	int ret;
+ 
+ 	if ( pstmt == NULL )
+ 		return SQLITED_ERROR;
+ 
++	pthread_mutex_lock(&pstmt->db->lock);
+ 	snprintf( extend, REQUEST_EXTEND_LEN, "/%lu/%d/INT", pstmt->id, seq );
+ 	data_len = snprintf( data, 64, "%d", value );
+ 	pstmt->db->send_length = _sqlited_make_body( pstmt->db, data, data_len );
+ 	pstmt->db->send_length += _sqlited_make_header( pstmt->db, SQLITED_METHOD_OPTION, extend );
+ 
+-	return _sqlited_pstmt_request( pstmt );
++	ret = _sqlited_pstmt_request( pstmt );
++	pthread_mutex_unlock(&pstmt->db->lock);
++	return ret;
+ }
+ 
+ int sqlited_bind_int64( sqlited_pstmt *pstmt, int seq, long long int value )
+@@ -111,44 +129,56 @@
+ 	char	extend[REQUEST_EXTEND_LEN];
+ 	char	data[64];
+ 	size_t	data_len;
++	int ret;
+ 
+ 	if ( pstmt == NULL )
+ 		return SQLITED_ERROR;
+ 
++	pthread_mutex_lock(&pstmt->db->lock);
+ 	snprintf( extend, REQUEST_EXTEND_LEN, "/%lu/%d/INT64", pstmt->id, seq );
+ 	data_len = snprintf( data, 64, "%lld", value );
+ 	pstmt->db->send_length = _sqlited_make_body( pstmt->db, data, data_len );
+ 	pstmt->db->send_length += _sqlited_make_header( pstmt->db, SQLITED_METHOD_OPTION, extend );
+ 
+-	return _sqlited_pstmt_request( pstmt );
++	ret = _sqlited_pstmt_request( pstmt );
++	pthread_mutex_unlock(&pstmt->db->lock);
++	return ret;
+ }
+ 
+ int sqlited_bind_null( sqlited_pstmt *pstmt, int seq )
+ {
+ 	char	extend[REQUEST_EXTEND_LEN];
++	int ret;
+ 
+ 	if ( pstmt == NULL )
+ 		return SQLITED_ERROR;
+ 
++	pthread_mutex_lock(&pstmt->db->lock);
+ 	snprintf( extend, REQUEST_EXTEND_LEN, "/%lu/%d/NULL", pstmt->id, seq );
+ 	pstmt->db->send_length = _sqlited_make_body( pstmt->db, NULL, 0 );
+ 	pstmt->db->send_length += _sqlited_make_header( pstmt->db, SQLITED_METHOD_OPTION, extend );
+ 
+-	return _sqlited_pstmt_request( pstmt );
++	ret = _sqlited_pstmt_request( pstmt );
++	pthread_mutex_unlock(&pstmt->db->lock);
++	return ret;
+ }
+ 
+ int sqlited_bind_text( sqlited_pstmt *pstmt, int seq, const char *value, int length )
+ {
+ 	char	extend[REQUEST_EXTEND_LEN];
++	int ret;
+ 
+ 	if ( pstmt == NULL )
+ 		return SQLITED_ERROR;
+ 
++	pthread_mutex_lock(&pstmt->db->lock);
+ 	snprintf( extend, REQUEST_EXTEND_LEN, "/%lu/%d/TEXT", pstmt->id, seq );
+ 	pstmt->db->send_length = _sqlited_make_body( pstmt->db, value, length );
+ 	pstmt->db->send_length += _sqlited_make_header( pstmt->db, SQLITED_METHOD_OPTION, extend );
+ 
+-	return _sqlited_pstmt_request( pstmt );
++	ret = _sqlited_pstmt_request( pstmt );
++	pthread_mutex_unlock(&pstmt->db->lock);
++	return ret;
+ }
+ 
+ sqlited_result *sqlited_execute( sqlited_pstmt *pstmt )
+@@ -159,11 +189,13 @@
+ 	if ( pstmt == NULL )
+ 		return NULL;
+ 
++	pthread_mutex_lock(&pstmt->db->lock);
+ 	snprintf( extend, REQUEST_EXTEND_LEN, "/%lu/EXECUTE", pstmt->id );
+ 	pstmt->db->send_length = _sqlited_make_body( pstmt->db, NULL, 0 );
+ 	pstmt->db->send_length += _sqlited_make_header( pstmt->db, SQLITED_METHOD_OPTION, extend );
+ 
+ 	result = _sqlited_pstmt_request( pstmt );
++	pthread_mutex_unlock(&pstmt->db->lock);
+ 	if ( result == SQLITED_ERROR )
+ 		return NULL;
+ 
+@@ -173,15 +205,19 @@
+ int sqlited_reset( sqlited_pstmt *pstmt )
+ {
+ 	char	extend[REQUEST_EXTEND_LEN];
++	int ret;
+ 
+ 	if ( pstmt == NULL )
+ 		return SQLITED_ERROR;
+ 
++	pthread_mutex_lock(&pstmt->db->lock);
+ 	snprintf( extend, REQUEST_EXTEND_LEN, "/%lu/RESET", pstmt->id );
+ 	pstmt->db->send_length = _sqlited_make_body( pstmt->db, NULL, 0 );
+ 	pstmt->db->send_length += _sqlited_make_header( pstmt->db, SQLITED_METHOD_OPTION, extend );
+ 
+-	return _sqlited_pstmt_request( pstmt );
++	ret = _sqlited_pstmt_request( pstmt );
++	pthread_mutex_unlock(&pstmt->db->lock);
++	return ret;
+ }
+ 
+ int sqlited_finalize( sqlited_pstmt *pstmt )
+@@ -196,6 +232,7 @@
+ 		return SQLITED_ERROR;
+ 
+ 
++	pthread_mutex_lock(&pstmt->db->lock);
+ 	snprintf( extend, REQUEST_EXTEND_LEN, "/%lu/RELEASE", pstmt->id );
+ 	pstmt->db->send_length = _sqlited_make_body( pstmt->db, "", 0 );
+ 	pstmt->db->send_length += _sqlited_make_header( pstmt->db, SQLITED_METHOD_OPTION, extend );
+@@ -214,6 +251,7 @@
+ 		}
+ 		prev = res;
+ 	}
++	pthread_mutex_unlock(&pstmt->db->lock);
+ 
+ 	return result;
+ }
+diff -Naur sqlitedbms-0.5.1/src/lib/sqlited_request.c sqlitedbms-0.5.1.new/src/lib/sqlited_request.c
+--- sqlitedbms-0.5.1/src/lib/sqlited_request.c	2006-11-10 10:46:52.000000000 +0100
++++ sqlitedbms-0.5.1.new/src/lib/sqlited_request.c	2009-10-23 16:01:05.000000000 +0200
+@@ -7,9 +7,11 @@
+ 
+ 	size_t		query_len;
+ 	int		result;
++	sqlited_result *ret;
+ 
+ 	query_len = strlen( query );
+ 
++	pthread_mutex_lock(&db->lock);
+ 	_sqlited_buf_init( db, query_len );
+ 
+ 	db->send_length = _sqlited_make_body( db, query, query_len );
+@@ -19,16 +21,21 @@
+ 	if ( result != SQLITED_OK )
+ 	{
+ 		db->errmsg = strerror( errno );
++		pthread_mutex_unlock(&db->lock);
+ 		return NULL;
+ 	}
+ 
+ 	result = _sqlited_response( db );
+-	if ( result == SQLITED_RESPONSE_END )
+-		return _sqlited_response_parse( db );
++	if ( result == SQLITED_RESPONSE_END ) {
++		ret = _sqlited_response_parse( db );
++		pthread_mutex_unlock(&db->lock);
++		return ret;
++	}
+ 
+ 	//printf("%s\n", db->recv_buf);
+ 
+ 	db->errmsg = strerror( errno );
++	pthread_mutex_unlock(&db->lock);
+ 	return NULL;
+ }
+ 
+--- sqlitedbms-0.5.1_virgin/src/lib/sqlited_internal.h	2006-11-10 11:02:17.000000000 +0100
++++ sqlitedbms-0.5.1_patched/src/lib/sqlited_internal.h	2009-10-23 16:37:54.000000000 +0200
+@@ -132,6 +132,7 @@
+ 	char			version_sqlite3[16];
+ 
+ 	char			*errmsg;
++	pthread_mutex_t		lock;
+ };
+ 
+ 

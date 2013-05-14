@@ -1,0 +1,14 @@
+--- LiTE-0.8.10/leck/button.c   2008-06-21 01:13:10.000000000 +0200
++++ LiTE-0.8.10_patched/leck/button.c 2009-02-25 17:41:56.000000000 +0100
+@@ -179,6 +179,10 @@
+      /* check for valid state */
+      if (state >= LITE_BS_MAX)
+           return DFB_INVARG;
++  if (button->imgsurface[state]){
++    button->imgsurface[state]->Release(button->imgsurface[state]);
++   button->imgsurface[state]=NULL;
++  }
+
+      /* load the image surface from the absolute file path */
+      ret = lite_util_load_image(filename, DSPF_UNKNOWN,
+

@@ -1,0 +1,41 @@
+diff -ru LiTE-0.8.10/leck/list.c LiTE-0.8.10_patched/leck/list.c
+--- LiTE-0.8.10/leck/list.c	2008-06-21 01:11:55.000000000 +0200
++++ LiTE-0.8.10_patched/leck/list.c	2009-03-05 15:55:38.000000000 +0100
+@@ -285,6 +285,20 @@
+      return DFB_OK;
+ }
+ 
++DFBResult lite_list_del_all_items(LiteList *list)
++{
++     LITE_NULL_PARAMETER_CHECK(list);
++     D_FREE( list->arr_data );
++     list->arr_data = NULL;
++     list->item_count = 0;
++     list->cur_item_index = -1;
++     list_update_scrollbar(list);
++     lite_update_box(&list->box, NULL);
++
++     return DFB_OK;
++}
++
++
+ DFBResult lite_list_del_item(LiteList *list, int index)
+ {
+      
+diff -ru LiTE-0.8.10/leck/list.h LiTE-0.8.10_patched/leck/list.h
+--- LiTE-0.8.10/leck/list.h	2008-06-21 01:14:27.000000000 +0200
++++ LiTE-0.8.10_patched/leck/list.h	2009-03-04 16:42:05.000000000 +0100
+@@ -198,6 +198,13 @@
+  */
+ DFBResult lite_list_del_item(LiteList *list, int index);
+ 
++/* @brief Delete all the listdata
++ *
++ * @param list                  IN:     Valid LiteList object
++ *
++ * @return DFBResult            Returns DFB_OK if successful
++ */
++DFBResult lite_list_del_all_items(LiteList *list);
+ 
+ /* @brief get total item count of the list
+  *

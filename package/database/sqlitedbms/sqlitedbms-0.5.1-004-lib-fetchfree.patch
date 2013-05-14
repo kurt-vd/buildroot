@@ -1,0 +1,22 @@
+--- sqlitedbms-0.5.1_old/src/lib/sqlited_fetch.c	2009-10-28 12:03:46.000000000 +0100
++++ sqlitedbms-0.5.1/src/lib/sqlited_fetch.c.orig	2009-10-28 12:15:42.000000000 +0100
+@@ -101,6 +101,7 @@
+ 	sqlited_result	*res;
+ 	sqlited_result	*prev = NULL;
+ 	sqlited_result	*next;
++	int freeflag = 0;
+ 
+ 	if ( result == NULL || result->type == SQLITED_RESULT_MSG )
+ 		return;
+@@ -134,7 +135,10 @@
+ 				prev->next = next;
+ 			else
+ 				result->db->result = next;
+-			free( res );
++			if(freeflag == 0)
++				free( res );
++			freeflag = 1;
++			continue;
+ 		} else {
+ 			prev = res;
+ 		}

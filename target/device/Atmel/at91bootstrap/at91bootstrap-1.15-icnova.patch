@@ -1,0 +1,520 @@
+diff -Naur Bootstrap-v1.15/board/icnova_arm9/icnova_arm9.c Bootstrap-v1.15.icnova/board/icnova_arm9/icnova_arm9.c
+--- Bootstrap-v1.15/board/icnova_arm9/icnova_arm9.c	1970-01-01 01:00:00.000000000 +0100
++++ Bootstrap-v1.15.icnova/board/icnova_arm9/icnova_arm9.c	2010-01-25 10:51:31.000000000 +0100
+@@ -0,0 +1,238 @@
++/* ----------------------------------------------------------------------------
++ *         ATMEL Microcontroller Software Support  -  ROUSSET  -
++ * ----------------------------------------------------------------------------
++ * Copyright (c) 2008, Atmel Corporation
++
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *
++ * - Redistributions of source code must retain the above copyright notice,
++ * this list of conditions and the disclaimer below.
++ *
++ * Atmel's name may not be used to endorse or promote products derived from
++ * this software without specific prior written permission.
++ *
++ * DISCLAIMER: THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
++ * DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
++ * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
++ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
++ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
++ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ * ----------------------------------------------------------------------------
++ * File Name           : icnova_arm9.c
++ * Object              :
++ * Creation            : NFe Jan 2008
++ *-----------------------------------------------------------------------------
++ */
++#include "../../include/part.h"
++#include "../../include/gpio.h"
++#include "../../include/pmc.h"
++#include "../../include/debug.h"
++#include "../../include/main.h"
++#include "../../include/ddramc.h"
++#ifdef CFG_NANDFLASH
++#include "../../include/nandflash.h"
++#endif
++#ifdef CFG_NORFLASH
++#include "../../include/norflash.h"
++#endif
++
++static inline unsigned int get_cp15(void)
++{
++	unsigned int value;
++	__asm__("mrc p15, 0, %0, c1, c0, 0" : "=r" (value));
++	return value;
++}
++
++static inline void set_cp15(unsigned int value)
++{
++	__asm__("mcr p15, 0, %0, c1, c0, 0" : : "r" (value));
++}
++
++#ifdef CFG_HW_INIT
++/*----------------------------------------------------------------------------*/
++/* \fn    hw_init							      */
++/* \brief This function performs very low level HW initialization	      */
++/* This function is invoked as soon as possible during the c_startup	      */
++/* The bss segment must be initialized					      */
++/*----------------------------------------------------------------------------*/
++void hw_init(void)
++{
++	unsigned int cp15;
++
++	/* Configure PIOs */
++	const struct pio_desc hw_pio[] = {
++#ifdef CFG_DEBUG
++		{"RXD", AT91C_PIN_PB(12), 0, PIO_DEFAULT, PIO_PERIPH_A},
++		{"TXD", AT91C_PIN_PB(13), 0, PIO_DEFAULT, PIO_PERIPH_A},
++#endif
++		{(char *) 0, 0, 0, PIO_DEFAULT, PIO_PERIPH_A},
++	};
++
++	/* Disable watchdog */
++	writel(AT91C_WDTC_WDDIS, AT91C_BASE_WDTC + WDTC_WDMR);
++
++	/* At this stage the main oscillator is supposed to be enabled
++	 * PCK = MCK = MOSC */
++	writel(0x00, AT91C_BASE_PMC + PMC_PLLICPR);
++
++	/* Configure PLLA = MOSC * (PLL_MULA + 1) / PLL_DIVA */
++	pmc_cfg_plla(PLLA_SETTINGS, PLL_LOCK_TIMEOUT);
++
++	/* PCK = PLLA/2 = 3 * MCK */
++	pmc_cfg_mck(MCKR_SETTINGS, PLL_LOCK_TIMEOUT);
++
++	/* Switch MCK on PLLA output */
++	pmc_cfg_mck(MCKR_CSS_SETTINGS, PLL_LOCK_TIMEOUT);
++
++	/* Configure PLLB */
++	//pmc_cfg_pllutmi(PLLUTMI_SETTINGS, PLL_LOCK_TIMEOUT);
++
++	/* Configure CP15 */
++	cp15 = get_cp15();
++	cp15 |= I_CACHE;
++	set_cp15(cp15);
++
++	/* Configure the PIO controller */
++	pio_setup(hw_pio);
++
++#ifdef CFG_DEBUG
++	/* Enable Debug messages on the DBGU */
++	dbg_init(BAUDRATE(MASTER_CLOCK, 115200));
++
++	dbg_print("Start AT91Bootstrap...\n\r");
++#endif /* CFG_DEBUG */
++
++#ifdef CFG_DDRAM
++	/* Configure DDRAM Controller */
++	ddramc_hw_init();
++#endif /* CFG_DDRAM */
++}
++#endif /* CFG_HW_INIT */
++
++#ifdef CFG_DDRAM
++static	SDdramConfig ddram_config = {	
++	.ddramc_mdr  = (AT91C_DDRC2_DBW_16_BITS | AT91C_DDRC2_MD_DDR2_SDRAM),
++		
++	.ddramc_cr   = (AT91C_DDRC2_NC_DDR10_SDR9  |     	// 10 column bits (1K)
++			AT91C_DDRC2_NR_14          |     	// 14 row bits    (8K)
++			AT91C_DDRC2_CAS_3          |     	// CAS Latency 3
++			AT91C_DDRC2_DLL_RESET_DISABLED),	// DLL not reset
++
++	.ddramc_rtr  = 	0x24B,
++
++	.ddramc_t0pr = (AT91C_DDRC2_TRAS_6  |		//  6 * 7.5 = 45   ns
++			AT91C_DDRC2_TRCD_2  |		//  2 * 7.5 = 22.5 ns
++			AT91C_DDRC2_TWR_2   |		//  2 * 7.5 = 15   ns
++			AT91C_DDRC2_TRC_8  |		//  8 * 7.5 = 75   ns
++			AT91C_DDRC2_TRP_2   |		//  2 * 7.5 = 22.5 ns
++			AT91C_DDRC2_TRRD_1  |		//  1 * 7.5 = 7.5   ns
++			AT91C_DDRC2_TWTR_1  |		//  1 clock cycle
++			AT91C_DDRC2_TMRD_2),		//  2 clock cycles
++		
++	.ddramc_t1pr = (AT91C_DDRC2_TXP_2  |		//  2 * 7.5 = 15 ns
++			200 << 16           |		// 200 clock cycles, TXSRD: Exit self refresh delay to Read command
++			16 << 8             |		// 16 * 7.5 = 120 ns TXSNR: Exit self refresh delay to non read command
++			AT91C_DDRC2_TRFC_14 << 0),	// 14 * 7.5 = 142 ns (must be 140 ns for 1Gb DDR)
++
++	.ddramc_t2pr = (AT91C_DDRC2_TRTP_1   |		//  1 * 7.5 = 7.5 ns
++			AT91C_DDRC2_TRPA_0   |		//  0 * 7.5 = 0 ns
++			AT91C_DDRC2_TXARDS_7 |		//  7 clock cycles
++			AT91C_DDRC2_TXARD_2),		//  2 clock cycles
++};
++
++/*------------------------------------------------------------------------------*/
++/* \fn    ddramc_hw_init							*/
++/* \brief This function performs DDRAMC HW initialization			*/
++/*------------------------------------------------------------------------------*/
++void ddramc_hw_init(void)
++{
++	// ENABLE DDR2 clock 
++	writel(AT91C_PMC_DDR, AT91C_BASE_PMC + PMC_SCER);
++
++	/* DDRAM2 controller */
++	ddram_init(AT91C_BASE_DDR2C, AT91C_DDR2, &ddram_config);
++
++}
++#endif /* CFG_DDRAM */
++
++
++#ifdef CFG_NANDFLASH
++/*------------------------------------------------------------------------------*/
++/* \fn    nand_recovery						*/
++/* \brief This function erases NandFlash Block 0 if BP4 is pressed 		*/
++/*        during boot sequence							*/
++/*------------------------------------------------------------------------------*/
++static void nand_recovery(void)
++{
++
++}
++
++/*------------------------------------------------------------------------------*/
++/* \fn    nandflash_hw_init							*/
++/* \brief NandFlash HW init							*/
++/*------------------------------------------------------------------------------*/
++void nandflash_hw_init(void)
++{
++	/* Configure PIOs */
++	const struct pio_desc nand_pio[] = {
++		{"RDY_BSY", AT91C_PIN_PC(8), 0, PIO_PULLUP, PIO_INPUT},
++		{"NANDCS",  AT91C_PIN_PC(14), 0, PIO_PULLUP, PIO_OUTPUT},
++		{(char *) 0, 0, 0,  PIO_DEFAULT, PIO_PERIPH_A},
++	};
++
++	/* Setup Smart Media, first enable the address range of CS3 in HMATRIX user interface */
++	writel(readl(AT91C_BASE_CCFG + CCFG_EBICSA) | AT91C_EBI_CS3A_SM, AT91C_BASE_CCFG + CCFG_EBICSA);
++	
++	/* EBI IO in 1.8V mode */
++	writel(readl(AT91C_BASE_CCFG + CCFG_EBICSA) & ~(1<<16), AT91C_BASE_CCFG + CCFG_EBICSA);
++	 
++	/* Configure SMC CS3 */
++ 	writel((AT91C_SM_NWE_SETUP | AT91C_SM_NCS_WR_SETUP | AT91C_SM_NRD_SETUP | AT91C_SM_NCS_RD_SETUP), AT91C_BASE_SMC + SMC_SETUP3);
++  	writel((AT91C_SM_NWE_PULSE | AT91C_SM_NCS_WR_PULSE | AT91C_SM_NRD_PULSE | AT91C_SM_NCS_RD_PULSE), AT91C_BASE_SMC + SMC_PULSE3);
++	writel((AT91C_SM_NWE_CYCLE | AT91C_SM_NRD_CYCLE)						, AT91C_BASE_SMC + SMC_CYCLE3);
++	writel((AT91C_SMC_READMODE | AT91C_SMC_WRITEMODE | AT91C_SMC_NWAITM_NWAIT_DISABLE | 
++  		AT91C_SMC_DBW_WIDTH_SIXTEEN_BITS | AT91C_SM_TDF)						, AT91C_BASE_SMC + SMC_CTRL3);
++
++	/* Configure the PIO controller */
++	writel((1 << AT91C_ID_PIOC), (PMC_PCER + AT91C_BASE_PMC));
++	pio_setup(nand_pio);
++	
++	nand_recovery();
++}
++
++/*------------------------------------------------------------------------------*/
++/* \fn    nandflash_cfg_16bits_dbw_init						*/
++/* \brief Configure SMC in 16 bits mode						*/
++/*------------------------------------------------------------------------------*/
++void nandflash_cfg_16bits_dbw_init(void)
++{
++	writel(readl(AT91C_BASE_SMC + SMC_CTRL3) | AT91C_SMC_DBW_WIDTH_SIXTEEN_BITS, AT91C_BASE_SMC + SMC_CTRL3);
++}
++
++/*------------------------------------------------------------------------------*/
++/* \fn    nandflash_cfg_8bits_dbw_init						*/
++/* \brief Configure SMC in 8 bits mode						*/
++/*------------------------------------------------------------------------------*/
++void nandflash_cfg_8bits_dbw_init(void)
++{
++	writel((readl(AT91C_BASE_SMC + SMC_CTRL3) & ~(AT91C_SMC_DBW)) | AT91C_SMC_DBW_WIDTH_EIGTH_BITS, AT91C_BASE_SMC + SMC_CTRL3);
++}
++
++#endif /* #ifdef CFG_NANDFLASH */
++
++#ifdef CFG_NORFLASH
++void norflash_hw_init(void) {
++ 	writel(0x0012000a, AT91C_BASE_SMC + SMC_SETUP0);
++  	writel(0x3b38343b, AT91C_BASE_SMC + SMC_PULSE0);
++	writel(0x003f003f, AT91C_BASE_SMC + SMC_CYCLE0);
++	writel(0x00001000, AT91C_BASE_SMC + SMC_CTRL0);
++
++}
++#endif
+diff -Naur Bootstrap-v1.15/board/icnova_arm9/norflash/icnova_arm9.h Bootstrap-v1.15.icnova/board/icnova_arm9/norflash/icnova_arm9.h
+--- Bootstrap-v1.15/board/icnova_arm9/norflash/icnova_arm9.h	1970-01-01 01:00:00.000000000 +0100
++++ Bootstrap-v1.15.icnova/board/icnova_arm9/norflash/icnova_arm9.h	2010-01-25 10:36:11.000000000 +0100
+@@ -0,0 +1,128 @@
++/* ----------------------------------------------------------------------------
++ *         ATMEL Microcontroller Software Support  -  ROUSSET  -
++ * ----------------------------------------------------------------------------
++ * Copyright (c) 2008, Atmel Corporation
++
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *
++ * - Redistributions of source code must retain the above copyright notice,
++ * this list of conditions and the disclaimer below.
++ *
++ * Atmel's name may not be used to endorse or promote products derived from
++ * this software without specific prior written permission.
++ *
++ * DISCLAIMER: THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
++ * DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
++ * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
++ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
++ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
++ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ * ----------------------------------------------------------------------------
++ * File Name           : icnova_arm9.h
++ * Object              :
++ * Creation            : PVz June 2009
++ *-----------------------------------------------------------------------------
++ */
++#ifndef _ICNOVA_ARM9_H
++#define _ICNOVA_ARM9_H
++ 
++/* ******************************************************************* */
++/* PMC Settings                                                        */
++/*                                                                     */
++/* The main oscillator is enabled as soon as possible in the c_startup */
++/* and MCK is switched on the main oscillator.                         */
++/* PLL initialization is done later in the hw_init() function          */
++/* ******************************************************************* */
++#define MASTER_CLOCK		(132096000)
++#define PLL_LOCK_TIMEOUT	1000000
++
++#define BOARD_MAINOSC           12000000
++#define BOARD_MCK               ((unsigned long)((BOARD_MAINOSC / 3 / 2 / 3) * 200 )) // 133MHz
++#define BOARD_OSCOUNT           (AT91C_CKGR_OSCOUNT & (64 << 8))
++#define BOARD_CKGR_PLLA         (AT91C_CKGR_SRCA | AT91C_CKGR_OUTA_0)
++#define BOARD_PLLACOUNT         (0x3F << 8)
++#define BOARD_MULA              (AT91C_CKGR_MULA & (199 << 16))
++#define BOARD_DIVA              (AT91C_CKGR_DIVA & 3)
++#define BOARD_PRESCALER         (0x00001300)
++
++#define PLLA_SETTINGS           ( BOARD_CKGR_PLLA \
++                                | BOARD_PLLACOUNT \
++                                | BOARD_MULA \
++                                | BOARD_DIVA)
++
++//#define PLLA_SETTINGS	0x202A3F01
++#define PLLUTMI
++#define PLLUTMI_SETTINGS	0x10193F05
++
++/* Switch MCK on PLLA output PCK = PLLA/2 = 3 * MCK */
++#define MCKR_SETTINGS          (AT91C_PMC_CSS_MAIN_CLK | BOARD_PRESCALER)
++#define MCKR_CSS_SETTINGS      (AT91C_PMC_CSS_PLLA_CLK | BOARD_PRESCALER)
++
++/* ******************************************************************* */
++/* NandFlash Settings                                                  */
++/*                                                                     */
++/* ******************************************************************* */
++#define AT91C_SMARTMEDIA_BASE	0x40000000
++
++#define AT91_SMART_MEDIA_ALE    (1 << 21)	/* our ALE is AD21 */
++#define AT91_SMART_MEDIA_CLE    (1 << 22)	/* our CLE is AD22 */
++
++#define NAND_DISABLE_CE() do { *(volatile unsigned int *)AT91C_PIOC_SODR = AT91C_PIO_PC11;} while(0)
++#define NAND_ENABLE_CE() do { *(volatile unsigned int *)AT91C_PIOC_CODR = AT91C_PIO_PC11;} while(0)
++
++#define NAND_WAIT_READY() while (!(*(volatile unsigned int *)AT91C_PIOC_PDSR & AT91C_PIO_PC8))
++
++
++/* ******************************************************************** */
++/* SMC Chip Select 3 Timings for NandFlash for MASTER_CLOCK = 133000000.*/
++/* Please refer to SMC section in AT91SAM9 datasheet to learn how 	*/
++/* to generate these values. 						*/
++/* ******************************************************************** */
++#define AT91C_SM_NWE_SETUP	(2 << 0)
++#define AT91C_SM_NCS_WR_SETUP	(0 << 8)
++#define AT91C_SM_NRD_SETUP	(2 << 16)
++#define AT91C_SM_NCS_RD_SETUP	(0 << 24)
++  
++#define AT91C_SM_NWE_PULSE 	(4 << 0)
++#define AT91C_SM_NCS_WR_PULSE	(4 << 8)
++#define AT91C_SM_NRD_PULSE	(4 << 16)
++#define AT91C_SM_NCS_RD_PULSE	(4 << 24)
++  
++#define AT91C_SM_NWE_CYCLE 	(7 << 0)
++#define AT91C_SM_NRD_CYCLE	(7 << 16)
++
++#define AT91C_SM_TDF	        (3 << 16)
++
++/* ******************************************************************* */
++/* BootStrap Settings                                                  */
++/*                                                                     */
++/* ******************************************************************* */
++#define IMG_ADDRESS 		0x20000			/* Image Address in NandFlash */
++#define	IMG_SIZE		0x40000			/* Image Size in NandFlash */
++
++#define MACH_TYPE		0x86F			/* AT91SAM9G45-EKES */
++#define JUMP_ADDR		0x73F00000		/* Final Jump Address */
++
++/* ******************************************************************* */
++/* Application Settings                                                */
++/* ******************************************************************* */
++#undef CFG_DEBUG
++#undef CFG_DATAFLASH
++
++#undef  CFG_NANDFLASH
++#undef	NANDFLASH_SMALL_BLOCKS	/* NANDFLASH_LARGE_BLOCKS used instead */
++
++#define CFG_NORFLASH
++#define	CFG_DDRAM
++#define	CFG_HW_INIT
++#define	CFG_DEBUG
++#define	DEBUG
++
++#endif	/* _ICNOVA_ARM9_H */
+diff -Naur Bootstrap-v1.15/board/icnova_arm9/norflash/Makefile Bootstrap-v1.15.icnova/board/icnova_arm9/norflash/Makefile
+--- Bootstrap-v1.15/board/icnova_arm9/norflash/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ Bootstrap-v1.15.icnova/board/icnova_arm9/norflash/Makefile	2010-01-17 18:24:35.000000000 +0100
+@@ -0,0 +1,129 @@
++# TODO: set this appropriately for your local toolchain
++ifndef ERASE_FCT
++ERASE_FCT=rm -f
++endif
++ifndef CROSS_COMPILE
++CROSS_COMPILE=arm-elf-
++endif
++
++TOOLCHAIN=gcc
++
++BOOTSTRAP_PATH=../../..
++
++# NandFlashBoot Configuration for AT91SAM9260EK
++
++# Target name (case sensitive!!!)
++TARGET=ICNOVA_ARM9
++# Board name (case sensitive!!!)
++BOARD=icnova_arm9
++# Link Address and Top_of_Memory
++LINK_ADDR=0x300000
++TOP_OF_MEMORY=0x304000
++# Name of current directory
++PROJECT=norflash
++
++ifndef BOOT_NAME
++BOOT_NAME=$(PROJECT)_$(BOARD)
++endif
++
++INCL=./$(BOOTSTRAP_PATH)/board/$(BOARD)/$(PROJECT)
++
++ifeq ($(TOOLCHAIN), gcc)
++
++AS=$(CROSS_COMPILE)gcc
++CC=$(CROSS_COMPILE)gcc
++LD=$(CROSS_COMPILE)gcc
++NM= $(CROSS_COMPILE)nm
++SIZE=$(CROSS_COMPILE)size
++OBJCOPY=$(CROSS_COMPILE)objcopy
++OBJDUMP=$(CROSS_COMPILE)objdump
++CCFLAGS=-g -mcpu=arm926ej-s -O2 -Wall -D$(TARGET) -I$(INCL)
++ASFLAGS=-g -mcpu=arm926ej-s -c -O2 -Wall -D$(TARGET) -I$(INCL) -DTOP_OF_MEM=$(TOP_OF_MEMORY)
++
++# Linker flags.
++#  -Wl,...:     tell GCC to pass this to linker.
++#    -Map:      create map file
++#    --cref:    add cross reference to map file
++LDFLAGS+=-nostartfiles -nostdlib -Wl,-Map=$(BOOT_NAME).map,--cref
++LDFLAGS+=-T $(BOOTSTRAP_PATH)/elf32-littlearm.lds -Ttext $(LINK_ADDR)
++OBJS=crt0_gnu.o
++
++endif
++
++OBJS+=\
++	$(BOARD).o \
++	main.o \
++	gpio.o \
++	pmc.o \
++	debug.o \
++	sdramc.o \
++	ddramc.o \
++	nandflash.o \
++	norflash.o \
++	_udivsi3.o \
++	_umodsi3.o \
++	div0.o \
++	udiv.o \
++	string.o 
++
++rebuild: clean all
++
++all: 	$(BOOT_NAME)
++
++ifeq ($(TOOLCHAIN), gcc)
++$(BOOT_NAME): $(OBJS)
++	$(LD) $(LDFLAGS) -n -o $(BOOT_NAME).elf $(OBJS)
++	$(OBJCOPY) --strip-debug --strip-unneeded $(BOOT_NAME).elf -O binary $(BOOT_NAME).bin
++endif
++
++
++$(BOARD).o: $(BOOTSTRAP_PATH)/board/$(BOARD)/$(BOARD).c
++	$(CC) -c $(CCFLAGS) $(BOOTSTRAP_PATH)/board/$(BOARD)/$(BOARD).c -o $(BOARD).o
++
++main.o: $(BOOTSTRAP_PATH)/main.c 
++	$(CC) -c $(CCFLAGS) $(BOOTSTRAP_PATH)/main.c -o main.o
++
++gpio.o: $(BOOTSTRAP_PATH)/driver/gpio.c 
++	$(CC) -c $(CCFLAGS) $(BOOTSTRAP_PATH)/driver/gpio.c -o gpio.o
++
++pmc.o:  $(BOOTSTRAP_PATH)/driver/pmc.c 
++	$(CC) -c $(CCFLAGS) $(BOOTSTRAP_PATH)/driver/pmc.c -o pmc.o
++
++debug.o: $(BOOTSTRAP_PATH)/driver/debug.c 
++	$(CC) -c $(CCFLAGS) $(BOOTSTRAP_PATH)/driver/debug.c -o debug.o
++
++sdramc.o:  $(BOOTSTRAP_PATH)/driver/sdramc.c 
++	$(CC) -c $(CCFLAGS) $(BOOTSTRAP_PATH)/driver/sdramc.c -o sdramc.o
++
++ddramc.o:  $(BOOTSTRAP_PATH)/driver/ddramc.c 
++	$(CC) -c $(CCFLAGS) $(BOOTSTRAP_PATH)/driver/ddramc.c -o ddramc.o
++
++dataflash.o:  $(BOOTSTRAP_PATH)/driver/dataflash.c 
++	$(CC) -c $(CCFLAGS) $(BOOTSTRAP_PATH)/driver/dataflash.c -o dataflash.o
++
++norflash.o:  $(BOOTSTRAP_PATH)/driver/norflash.c 
++	$(CC) -c $(CCFLAGS) $(BOOTSTRAP_PATH)/driver/norflash.c -o norflash.o
++
++nandflash.o:  $(BOOTSTRAP_PATH)/driver/nandflash.c 
++	$(CC) -c $(CCFLAGS) $(BOOTSTRAP_PATH)/driver/nandflash.c -o nandflash.o
++
++crt0_gnu.o:  $(BOOTSTRAP_PATH)/crt0_gnu.S
++	$(AS) $(ASFLAGS) $(BOOTSTRAP_PATH)/crt0_gnu.S -o crt0_gnu.o
++
++div0.o:  $(BOOTSTRAP_PATH)/lib/div0.c 
++	$(CC) -c $(CCFLAGS) $(BOOTSTRAP_PATH)/lib/div0.c -o div0.o
++
++string.o:  $(BOOTSTRAP_PATH)/lib/string.c 
++	$(CC) -c $(CCFLAGS) $(BOOTSTRAP_PATH)/lib/string.c -o string.o
++
++udiv.o:  $(BOOTSTRAP_PATH)/lib/udiv.c 
++	$(CC) -c $(CCFLAGS) $(BOOTSTRAP_PATH)/lib/udiv.c -o udiv.o
++
++_udivsi3.o:  $(BOOTSTRAP_PATH)/lib/_udivsi3.S
++	$(AS) $(ASFLAGS) $(BOOTSTRAP_PATH)/lib/_udivsi3.S -o _udivsi3.o
++
++_umodsi3.o:  $(BOOTSTRAP_PATH)/lib/_umodsi3.S
++	$(AS) $(ASFLAGS) $(BOOTSTRAP_PATH)/lib/_umodsi3.S -o _umodsi3.o
++
++clean:
++	$(ERASE_FCT) *.o *.bin *.elf *.map
+diff -Naur Bootstrap-v1.15/include/part.h Bootstrap-v1.15.icnova/include/part.h
+--- Bootstrap-v1.15/include/part.h	2009-11-09 18:28:11.000000000 +0100
++++ Bootstrap-v1.15.icnova/include/part.h	2010-01-25 10:36:50.000000000 +0100
+@@ -88,4 +88,9 @@
+ #include "at91sam9m10ekes.h"
+ #endif
+ 
++#ifdef ICNOVA_ARM9
++#include "AT91SAM9G45_inc.h"
++#include "icnova_arm9.h"
++#endif
++
+ #endif /* _PART_H */

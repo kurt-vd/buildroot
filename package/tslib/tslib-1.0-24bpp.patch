@@ -1,0 +1,28 @@
+--- tslib-1.0.orig/tests/fbutils.c	2010-01-10 11:21:29.000000000 +0100
++++ tslib-1.0/tests/fbutils.c	2010-01-10 11:21:55.000000000 +0100
+@@ -247,6 +247,7 @@
+         	        perror("ioctl FBIOPUTCMAP");
+ 		break;
+ 	case 2:
++	case 3:
+ 	case 4:
+ 		red = (value >> 16) & 0xff;
+ 		green = (value >> 8) & 0xff;
+@@ -274,6 +275,17 @@
+ 		else
+ 			*loc.p16 = color;
+ 		break;
++	case 3:
++		if (xormode) {
++			*loc.p8 ^= color;
++			*(loc.p8 + 1) ^= color>>8;
++			*(loc.p8 + 2) ^= color>>16;
++		} else {
++			*loc.p8 = color;
++			*(loc.p8 + 1) = color>>8;
++			*(loc.p8 + 2) = color>>16;
++		}
++		break;
+ 	case 4:
+ 		if (xormode)
+ 			*loc.p32 ^= color;

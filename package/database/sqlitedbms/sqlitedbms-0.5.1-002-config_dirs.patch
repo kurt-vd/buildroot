@@ -1,0 +1,120 @@
+diff -Naur sqlitedbms-0.5.1.orig/src/backend/include/define.h sqlitedbms-0.5.1/src/backend/include/define.h
+--- sqlitedbms-0.5.1.orig/src/backend/include/define.h	2006-11-13 08:37:23.000000000 +0100
++++ sqlitedbms-0.5.1/src/backend/include/define.h	2009-04-17 10:52:18.000000000 +0200
+@@ -13,7 +13,7 @@
+ #define	THREAD_WORK			3
+ 
+ /* DEFAULT_ENV */
+-#define ENV_DEF_FILEPATH		"conf/sqlitedbms.conf"
++#define ENV_DEF_FILEPATH		CONFDIR "sqlitedbms.conf"
+ #define ENV_DEF_PORT			6543
+ #define ENV_DEF_MAX_SESSION		1024
+ #define ENV_DEF_POLL_TIMEOUT		10
+@@ -24,22 +24,22 @@
+ #define	ENV_DEF_BUF_SEND		1024*1024
+ 
+ #define	ENV_DEF_SSL			FALSE
+-#define	ENV_DEF_SSL_CERT		"conf/cert.pem"
+-#define	ENV_DEF_SSL_KEY			"conf/key.pem"
++#define	ENV_DEF_SSL_CERT		CONFDIR "cert.pem"
++#define	ENV_DEF_SSL_KEY			CONFDIR "key.pem"
+ 
+ #define	ENV_DEF_CACHE			TRUE
+ #define	ENV_DEF_CACHE_SLOT		10
+ #define	ENV_DEF_CACHE_SIZE		524288
+ 
+-#define	ENV_DEF_DB_PATH			"data"
++#define	ENV_DEF_DB_PATH			DBDIR
+ 
+ #define ENV_DEF_HTTP_USE		TRUE
+-#define ENV_DEF_HTTP_ROOT		"htdocs"
++#define ENV_DEF_HTTP_ROOT		HTDIR
+ #define ENV_DEF_HTTP_TIMEOUT		60
+ 
+ #define ENV_DEF_WEBDAV			TRUE
+ 
+-#define	ENV_DEF_LOG_PATH		"logs"
++#define	ENV_DEF_LOG_PATH		LOGDIR
+ #define	ENV_DEF_LOG_FILERULE		"%TYPE-%DATE.log"
+ #define	ENV_DEF_LOG_SQL			TRUE
+ 
+diff -Naur sqlitedbms-0.5.1.orig/src/backend/main.c sqlitedbms-0.5.1/src/backend/main.c
+--- sqlitedbms-0.5.1.orig/src/backend/main.c	2006-11-15 04:17:16.000000000 +0100
++++ sqlitedbms-0.5.1/src/backend/main.c	2009-04-17 11:01:41.000000000 +0200
+@@ -289,7 +289,8 @@
+ 		if ( repl_master_init() != SQLITE_OK )
+ 		{
+ 			perror( "   Replication master init failed" );
+-			printf( "   Change var/replication directory's permision or owner.\n" );
++			printf( "   Change "REPLICATIONDIR
++					" directory's permision or owner.\n" );
+ 			exit( 1 );
+ 		}
+ 	}
+diff -Naur sqlitedbms-0.5.1.orig/src/backend/Makefile.am sqlitedbms-0.5.1/src/backend/Makefile.am
+--- sqlitedbms-0.5.1.orig/src/backend/Makefile.am	2006-10-10 08:43:06.000000000 +0200
++++ sqlitedbms-0.5.1/src/backend/Makefile.am	2009-04-17 11:01:41.000000000 +0200
+@@ -1,4 +1,15 @@
+-AM_CPPFLAGS = $(CPPFLAGS) -D__PREFIX="\"$(prefix)\"" -DSERVER_SOFTWARE="\"SQLiteDBMS/$(VERSION)\"" -g
++confdir = $(sysconfdir)/@PACKAGE@
++dbdir = $(localstatedir)/@PACKAGE@
++logdir = $(localstatedir)/log/@PACKAGE@
++replicationdir = $(dbdir)/replication
++htdir = $(pkgdatadir)/htdocs
++AM_CFLAGS = -D__PREFIX="\"$(prefix)\"" \
++	    -DSERVER_SOFTWARE="\"SQLiteDBMS/$(VERSION)\"" \
++	    -DCONFDIR="\"$(confdir)/\"" -DDBDIR="\"$(dbdir)/\"" \
++	    -DLOGDIR="\"$(logdir)/\"" -DHTDIR="\"$(htdir)/\"" \
++	    -DREPLICATIONDIR="\"$(replicationdir)/\"" -g
++
++AM_CPPFLAGS = $(AM_CFLAGS)
+ 
+ bin_PROGRAMS = sqlitedbms
+ sqlitedbms_SOURCES = config.c http.c libnetwork.c libsqlite3.c main.c proc.c cache.c pstmt.c request.c response.c repl_master.c repl_master_deliver.c repl_slave.c log.c monitor.c admin.c extendsql.c auth.c util.c
+@@ -6,16 +17,17 @@
+ install: install-am install-htdocs install-data
+ 
+ install-htdocs:
+-	mkdir -p $(prefix)
+-	cp -pr ../htdocs $(prefix)/
++	for i in . client doc img client/js client/img; do \
++		$(INSTALL) -d $(DESTDIR)$(htdir)/$$i; \
++		$(INSTALL) ../htdocs/$$i/* $(DESTDIR)$(htdir)/$$i; \
++	done
+ 
+ install-data:
+-	mkdir -p $(prefix)/data
+-	mkdir -p $(prefix)/logs
+-	mkdir -p $(prefix)/var/replication
+-	touch $(prefix)/data/TEST
++	$(INSTALL) -d $(DESTDIR)$(dbdir)
++	$(INSTALL) -d $(DESTDIR)$(logdir)
++	$(INSTALL) -d $(DESTDIR)$(replicationdir)
++	touch $(DESTDIR)$(dbdir)/TEST
+ 
+-confdir = $(prefix)/conf
+ conf_SCRIPTS = sqlitedbms.conf.sample
+ 
+ 
+diff -Naur sqlitedbms-0.5.1.orig/src/backend/repl_master.c sqlitedbms-0.5.1/src/backend/repl_master.c
+--- sqlitedbms-0.5.1.orig/src/backend/repl_master.c	2006-11-09 09:10:51.000000000 +0100
++++ sqlitedbms-0.5.1/src/backend/repl_master.c	2009-04-17 11:00:49.000000000 +0200
+@@ -9,7 +9,7 @@
+ 	FILE            *test;
+ 	char            filename[512];
+ 
+-	snprintf( filename, 512, "var/replication/.init" );
++	snprintf( filename, 512, REPLICATIONDIR ".init" );
+ 	test = fopen( filename, "w" );
+ 	if ( test == NULL )
+ 		return SQLITE_ERROR;
+@@ -238,7 +238,8 @@
+ 		memset( file, 0, sizeof(struct repl_master_file_t) );
+ 
+ 		file->id = ++id;
+-		snprintf( file->filename, 1024, "var/replication/binlog%d", file->id );
++		snprintf( file->filename, 1024, REPLICATIONDIR"binlog%d",
++				file->id );
+ 
+ 		file->file = fopen( file->filename, "w" );
+ 		file->offset = ftell( file->file );

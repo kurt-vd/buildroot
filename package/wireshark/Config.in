@@ -1,0 +1,7 @@
+config BR2_PACKAGE_WIRESHARK
+	bool "Wireshark"
+	select BR2_PACKAGE_LIBGTK2
+	select BR2_PACKAGE_LIBPCAP
+	default n
+	help
+	  This is a network protocoll analizer.

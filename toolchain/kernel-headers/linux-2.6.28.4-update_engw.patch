@@ -1,0 +1,574 @@
+diff -Naur linux-2.6.28.4.orig/arch/avr32/boards/icnova/Kconfig linux-2.6.28.4.new/arch/avr32/boards/icnova/Kconfig
+--- linux-2.6.28.4.orig/arch/avr32/boards/icnova/Kconfig	2009-11-11 12:45:12.000000000 +0100
++++ linux-2.6.28.4.new/arch/avr32/boards/icnova/Kconfig	2009-11-11 11:18:30.000000000 +0100
+@@ -34,6 +34,12 @@
+ 	def_bool n
+ 	select BOARD_ICNOVA_DEV_USBH
+ 
++config BOARD_ICNOVA_ADB1000
++	def_bool n
++
++config BOARD_ICNOVA_ADB1001
++	def_bool n
++
+ choice 
+ 	prompt "ICnova option"
+ 	depends on BOARD_ICNOVA
+@@ -62,21 +68,51 @@
+ config BOARD_ICNOVA_OEM
+ 	bool "ICnova AP7000 OEM"
+ 	select BOARD_ICNOVA_OEMBASED
+-	select BOARD_ICNOVA_DEV_I2C
+ 
+ config BOARD_ICNOVA_OEMPLUS
+ 	bool "ICnova AP7000 OEM Plus"
+ 	select BOARD_ICNOVA_OEMPLUSBASED
+ 
+-config BOARD_ICNOVA_ADB1000
++config BOARD_ICNOVA_ADB1000_OEM
+ 	bool "ICnova ADB1000"
++	select BOARD_ICNOVA_OEMBASED
++	select BOARD_ICNOVA_ADB1000
++	select BOARD_ICNOVA_DEV_LED
++	select BOARD_ICNOVA_DEV_MAC
++	select BOARD_ICNOVA_DEV_MMC
++	select BOARD_ICNOVA_I2C_M41T82
++	select BOARD_ICNOVA_ADS7846
++
++config BOARD_ICNOVA_ADB1000_OEMPLUS
++	bool "ICnova ADB1000plus"
+ 	select BOARD_ICNOVA_OEMPLUSBASED
++	select BOARD_ICNOVA_ADB1000
+ 	select BOARD_ICNOVA_DEV_LED
+ 	select BOARD_ICNOVA_DEV_MAC
+ 	select BOARD_ICNOVA_DEV_MMC
+ 	select BOARD_ICNOVA_I2C_M41T82
+ 	select BOARD_ICNOVA_ADS7846
+ 
++config BOARD_ICNOVA_ADB1001_OEM
++	bool "ICnova ADB1001"
++	select BOARD_ICNOVA_ADB1001
++	select BOARD_ICNOVA_OEMBASED
++	select BOARD_ICNOVA_DEV_LED
++	select BOARD_ICNOVA_DEV_MMC
++	select BOARD_ICNOVA_DEM_MAC
++	select BOARD_ICNOVA_I2C_M41T82
++	select BOARD_ICNOVA_DEV_MACB
++
++config BOARD_ICNOVA_ADB1001_OEMPLUS
++	bool "ICnova ADB1001plus"
++	select BOARD_ICNOVA_ADB1001
++	select BOARD_ICNOVA_OEMPLUSBASED
++	select BOARD_ICNOVA_DEV_LED
++	select BOARD_ICNOVA_DEV_MMC
++	select BOARD_ICNOVA_DEM_MAC
++	select BOARD_ICNOVA_I2C_M41T82
++	select BOARD_ICNOVA_DEV_MACB
++
+ endchoice
+ 
+ config BOARD_ICNOVA_BASE_CP2102
+@@ -330,7 +366,7 @@
+ 
+ config BOARD_ICNOVA_I2C_M41T82
+ 	bool "M41T82-RTC can be found on the I2C-Interface"
+-	depends on BOARD_ICNOVA_DEV_I2C
++	select BOARD_ICNOVA_DEV_I2C
+ 	help
+ 	  If you have an M41T82-RTC connected to the ICnova via the 
+ 	  I2C/TWI-Interface, choose 'Y'. It doesn't hurt otherwise.
+diff -Naur linux-2.6.28.4.orig/arch/avr32/boards/icnova/led.c linux-2.6.28.4.new/arch/avr32/boards/icnova/led.c
+--- linux-2.6.28.4.orig/arch/avr32/boards/icnova/led.c	2009-11-11 12:45:12.000000000 +0100
++++ linux-2.6.28.4.new/arch/avr32/boards/icnova/led.c	2009-11-11 11:19:53.000000000 +0100
+@@ -82,6 +82,13 @@
+ 		.gpio = GPIO_PIN_PE(25),
+ 	},
+ #endif
++#ifdef CONFIG_BOARD_ICNOVA_ADB1001
++	{
++		.name = "led1:green",
++		.gpio = GPIO_PIN_PE(16),
++		.default_trigger = "heartbeat",
++	},
++#endif
+ };
+ 
+ static struct gpio_led_platform_data icnova_led_data = {
+diff -Naur linux-2.6.28.4.orig/arch/avr32/boards/icnova/mac.c linux-2.6.28.4.new/arch/avr32/boards/icnova/mac.c
+--- linux-2.6.28.4.orig/arch/avr32/boards/icnova/mac.c	2009-11-11 12:45:12.000000000 +0100
++++ linux-2.6.28.4.new/arch/avr32/boards/icnova/mac.c	2009-11-11 11:21:28.000000000 +0100
+@@ -19,7 +19,7 @@
+ 		.irq 		= 67,
+ 		.phy_mask	= ~(1U << 0),
+ 	},
+-#ifdef CONFIG_BOARD_ICNOVA_MACB
++#ifdef CONFIG_BOARD_ICNOVA_DEV_MACB
+ 	{
+ 		.irq 		= 67,
+ 		.phy_mask	= ~(1U << 0),
+@@ -85,7 +85,7 @@
+ 
+ static int __init icnova_setup_mac(void) {
+ 	set_hw_addr(at32_add_device_eth(0, &eth_data[0]));
+-#ifdef CONFIG_BOARD_ICNOVA_MACB
++#ifdef CONFIG_BOARD_ICNOVA_DEV_MACB
+ 	set_hw_addr(at32_add_device_eth(1, &eth_data[1]));
+ #endif
+ 	return 0;
+diff -Naur linux-2.6.28.4.orig/arch/avr32/boards/icnova/mmc.c linux-2.6.28.4.new/arch/avr32/boards/icnova/mmc.c
+--- linux-2.6.28.4.orig/arch/avr32/boards/icnova/mmc.c	2009-11-11 12:45:12.000000000 +0100
++++ linux-2.6.28.4.new/arch/avr32/boards/icnova/mmc.c	2009-11-11 11:39:56.000000000 +0100
+@@ -9,6 +9,7 @@
+ #include <mach/board.h>
+ #include <asm/errno.h>
+ #include <mach/at32ap700x.h>
++#include <mach/gpio.h>
+ 
+ static struct mci_platform_data __initdata mci0_data = {
+ 	// TODO Setup DMA?
+@@ -13,7 +14,7 @@
+ static struct mci_platform_data __initdata mci0_data = {
+ 	// TODO Setup DMA?
+ 	.slot[0] = {
+-#if/*def*/ 1 /*CONFIG_BOARD_ICNOVA_ADB1000*/
++#if defined(CONFIG_BOARD_ICNOVA_ADB1000) || defined(CONFIG_BOARD_ICNOVA_ADB1001)
+ 		.detect_pin	= GPIO_PIN_PA(16),
+ #else
+ 		.detect_pin	= -ENODEV,
+@@ -25,6 +26,10 @@
+ 
+ static int __init icnova_setup_mmc(void) {
+ 
++#ifdef CONFIG_BOARD_ICNOVA_ADB1001
++	gpio_request(GPIO_PIN_PA(21), "mmi.sw2");
++	gpio_direction_output(GPIO_PIN_PA(21), 0);
++#endif
+ 	at32_add_device_mci(0, &mci0_data);
+ 	return 0;
+ }
+diff -Naur linux-2.6.28.4.orig/arch/avr32/boards/icnova/vga.c linux-2.6.28.4.new/arch/avr32/boards/icnova/vga.c
+--- linux-2.6.28.4.orig/arch/avr32/boards/icnova/vga.c	2009-11-11 12:45:12.000000000 +0100
++++ linux-2.6.28.4.new/arch/avr32/boards/icnova/vga.c	2009-11-11 10:38:08.000000000 +0100
+@@ -33,10 +33,10 @@
+ 		.xres		= 800,
+ 		.yres		= 480,
+ 		.pixclock	= KHZ2PICOS(33260),
+-		.left_margin	= 128,
+-		.right_margin	= 88,
+-		.upper_margin	= 27,
+-		.lower_margin	= 16,
++		.left_margin	= 178,
++		.right_margin	= 38,
++		.upper_margin	= 35,
++		.lower_margin	= 8,
+ 		.hsync_len	= 40,
+ 		.vsync_len	= 2,
+ //		.sync		= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+@@ -200,7 +200,11 @@
+ };
+ 
+ struct atmel_lcdfb_info __initdata icnova_lcdc_data = {
++#ifdef CONFIG_BOARD_ICNOVA_VGA_ET035009DH6
+ 	.default_bpp		= 24,
++#else
++	.default_bpp		= 16,
++#endif
+ 	.default_dmacon		= ATMEL_LCDC_DMAEN | ATMEL_LCDC_DMA2DEN,
+ 	.default_lcdcon2	= (ATMEL_LCDC_DISTYPE_TFT
+ #ifdef CONFIG_BOARD_ICNOVA_CLK_INVERTED
+@@ -225,7 +229,13 @@
+ 	gpio_request(GPIO_PIN_PC(24), "lcdc.mode");
+ 	gpio_direction_output(GPIO_PIN_PC(24), 1);
+ 	gpio_request(GPIO_PIN_PC(25), "lcdc.pwr");
++#ifdef CONFIG_BOARD_ICNOVA_VGA_ET050000DH6
++	gpio_direction_output(GPIO_PIN_PC(25), 1);
++	gpio_request(GPIO_PIN_PC(23), "lcdc.enb");
++	gpio_direction_output(GPIO_PIN_PC(23), 1);
++#else
+ 	gpio_direction_output(GPIO_PIN_PC(25), 0);
++#endif
+ //#define GRAPHIC_ET070
+ #ifdef GRAPHIC_ET070
+ 	gpio_direction_output(GPIO_PIN_PD(0), 0);
+@@ -236,6 +246,9 @@
+ 			(ATMEL_LCDC_PRI_24BIT|ATMEL_LCDC_PRI_CONTROL)
+ 			& ~ATMEL_LCDC(PC, MODE)
+ 			& ~ATMEL_LCDC(PC, PWR)
++#ifdef CONFIG_BOARD_ICNOVA_VGA_ET050000DH6
++			& ~ATMEL_LCDC(PC, DVAL)
++#endif
+ #ifdef GRAPHIC_ET070
+ 			& ~(ATMEL_LCDC(PD, DATA6)|ATMEL_LCDC(PD, DATA7)
+ 				|ATMEL_LCDC(PD, DATA14))
+diff -Naur linux-2.6.28.4.orig/include/linux/pkt_sched.h linux-2.6.28.4.new/include/linux/pkt_sched.h
+--- linux-2.6.28.4.orig/include/linux/pkt_sched.h	2009-11-11 12:45:20.000000000 +0100
++++ linux-2.6.28.4.new/include/linux/pkt_sched.h	2009-11-10 16:04:26.000000000 +0100
+@@ -513,7 +513,7 @@
+ 
+ struct tc_drr_stats
+ {
+-	u32	deficit;
++	__u32	deficit;
+ };
+ 
+ #endif
+diff -Naur linux-2.6.28.4.orig/arch/avr32/boards/icnova/Makefile linux-2.6.28.4.shp/arch/avr32/boards/icnova/Makefile
+--- linux-2.6.28.4.orig/arch/avr32/boards/icnova/Makefile	2009-11-11 12:45:12.000000000 +0100
++++ linux-2.6.28.4.shp/arch/avr32/boards/icnova/Makefile	2009-07-07 10:32:19.000000000 +0200
+@@ -14,3 +14,4 @@
+ obj-$(CONFIG_BOARD_ICNOVA_DEV_IRDA)	+= irda.o
+ obj-$(CONFIG_BOARD_ICNOVA_USB_ISP1761)	+= usb.o
+ obj-$(CONFIG_BOARD_ICNOVA_AC97)		+= ac97.o
++obj-$(CONFIG_BOARD_ICNOVA_PWM)          += pwm.o
+diff -Naur linux-2.6.28.4.orig/arch/avr32/boards/icnova/pwm.c linux-2.6.28.4.shp/arch/avr32/boards/icnova/pwm.c
+--- linux-2.6.28.4.orig/arch/avr32/boards/icnova/pwm.c	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.6.28.4.shp/arch/avr32/boards/icnova/pwm.c	2009-07-07 10:31:22.000000000 +0200
+@@ -0,0 +1,41 @@
++/*
++ * This just puts the selected PWMs into their appropriate state
++ *
++ * (C) 2009 by Benjamin Tietz <benjamin.tietz@in-circuit.de>
++ */
++
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <mach/init.h>
++#include <mach/board.h>
++#include <mach/portmux.h>
++#include <mach/at32ap700x.h>
++
++static struct platform_device icnova_pwmdev = {
++	.name = "atmel-pwm-hwmon",
++	.id = 0,
++};
++
++static int icnova_pwm(void) {
++	char pwmmask = 0;
++#ifdef CONFIG_BOARD_ICNOVA_PWM0
++	pwmmask |= (1<<0);
++	at32_select_periph(GPIO_PIOA_BASE, (1<<28), GPIO_PERIPH_A, 0); //PWM0
++#endif
++#ifdef CONFIG_BOARD_ICNOVA_PWM1
++	pwmmask |= (1<<1);
++	at32_select_periph(GPIO_PIOA_BASE, (1<<29), GPIO_PERIPH_A, 0); //PWM1
++#endif
++#ifdef CONFIG_BOARD_ICNOVA_PWM2
++	pwmmask |= (1<<2);
++	at32_select_periph(GPIO_PIOA_BASE, (1<<21), GPIO_PERIPH_B, 0); //PWM2
++#endif
++#ifdef CONFIG_BOARD_ICNOVA_PWM3
++	pwmmask |= (1<<3);
++	at32_select_periph(GPIO_PIOA_BASE, (1<<22), GPIO_PERIPH_B, 0); //PWM3
++#endif
++	at32_add_device_pwm(pwmmask); //All four channels
++	platform_device_register(&icnova_pwmdev);
++	return 0;
++}
++device_initcall(icnova_pwm);
+diff -Naur linux-2.6.28.4.orig/drivers/hwmon/atm_pwm.c linux-2.6.28.4.shp/drivers/hwmon/atm_pwm.c
+--- linux-2.6.28.4.orig/drivers/hwmon/atm_pwm.c	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.6.28.4.shp/drivers/hwmon/atm_pwm.c	2009-07-07 10:23:31.000000000 +0200
+@@ -0,0 +1,246 @@
++/*
++ * Copyright (C) 2009 by Benjamin Tietz <benjamin.tietz@in-circuit.de>
++ * based on the atmel-pwm-bl.c
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
++#define DEBUG
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/fb.h>
++#include <linux/clk.h>
++#include <linux/gpio.h>
++#include <linux/atmel_pwm.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/sysfs.h>
++
++#define ATMEL_PWM_NCHN	4
++#define ATMEL_PWM_MAX	1000
++
++struct atmel_pwm_hwmon {
++	unsigned int		pwm_channel;
++	struct hwmon_device	*hwdev;
++	struct platform_device	*pdev;
++	struct pwm_channel	pwmc[ATMEL_PWM_NCHN];
++	struct device		dev;
++};
++
++static ssize_t atmel_pwm_hwmon_set_duty(struct device *dev,
++		struct device_attribute *devattr, const char *buf, size_t count)
++{
++	struct platform_device *pdev =
++		container_of(dev, struct platform_device, dev);
++	struct atmel_pwm_hwmon *pwmhw = platform_get_drvdata(pdev);
++	unsigned int pwm_duty = simple_strtoul(buf, NULL, 10);
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct pwm_channel *pwmc = &(pwmhw->pwmc[attr->index]);
++
++	if(pwm_duty > ATMEL_PWM_MAX)
++		pwm_duty = ATMEL_PWM_MAX;
++	pwm_channel_writel(pwmc, PWM_CUPD, pwm_duty);
++
++	return count;
++}
++
++static ssize_t atmel_pwm_hwmon_get_duty(struct device *dev,
++		struct device_attribute *devattr, char *buf)
++{
++	struct platform_device *pdev =
++		container_of(dev, struct platform_device, dev);
++	struct atmel_pwm_hwmon *pwmhw = platform_get_drvdata(pdev);
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct pwm_channel *pwmc = &(pwmhw->pwmc[attr->index]);
++
++	return sprintf(buf, "%d\n", pwm_channel_readl(pwmc, PWM_CDTY));
++}
++
++static ssize_t atmel_pwm_hwmon_set_freq(struct device *dev,
++		struct device_attribute *devattr, const char *buf, size_t count)
++{
++	struct platform_device *pdev =
++		container_of(dev, struct platform_device, dev);
++	struct atmel_pwm_hwmon *pwmhw = platform_get_drvdata(pdev);
++	int pwm_freq = simple_strtoul(buf, NULL, 10);
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct pwm_channel *pwmc = &(pwmhw->pwmc[attr->index]);
++	unsigned long pwm_rate = pwmc->mck;
++	unsigned long prescale;
++
++
++	pwm_channel_disable(pwmc);
++	if(!pwm_freq) 
++		return count;
++
++	prescale = DIV_ROUND_UP(pwm_rate, (pwm_freq * ATMEL_PWM_MAX)) -1;
++	/*
++	 * Prescale must be power of two and maximum 0xf in size because of
++	 * hardware limit. PWM speed will be:
++	 *	PWM module clock speed / (2 ^ prescale).
++	 */
++	prescale = fls(prescale);
++	if (prescale > 0xa)
++		prescale = 0xa;
++
++	pwm_channel_writel(pwmc, PWM_CPRD, ATMEL_PWM_MAX);
++	pwm_channel_writel(pwmc, PWM_CMR, prescale);
++	pwm_channel_enable(pwmc);
++
++	return count;
++}
++
++static ssize_t atmel_pwm_hwmon_get_freq(struct device *dev,
++		struct device_attribute *devattr, char *buf)
++{
++	struct platform_device *pdev =
++		container_of(dev, struct platform_device, dev);
++	struct atmel_pwm_hwmon *pwmhw = platform_get_drvdata(pdev);
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct pwm_channel *pwmc = &(pwmhw->pwmc[attr->index]);
++	unsigned long pwm_freq = pwm_channel_readl(pwmc, PWM_CMR);
++	pwm_freq = 1<<pwm_freq;
++	pwm_freq = pwmc->mck / pwm_freq / ATMEL_PWM_MAX;
++
++	return sprintf(buf, "%lu\n", pwm_freq);
++}
++
++static SENSOR_DEVICE_ATTR(pwm0_freq, S_IWUSR | S_IRUGO, 
++		atmel_pwm_hwmon_get_freq, atmel_pwm_hwmon_set_freq, 0);
++static SENSOR_DEVICE_ATTR(pwm0, S_IWUSR | S_IRUGO, 
++		atmel_pwm_hwmon_get_duty, atmel_pwm_hwmon_set_duty, 0);
++static SENSOR_DEVICE_ATTR(pwm1_freq, S_IWUSR | S_IRUGO, 
++		atmel_pwm_hwmon_get_freq, atmel_pwm_hwmon_set_freq, 1);
++static SENSOR_DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, 
++		atmel_pwm_hwmon_get_duty, atmel_pwm_hwmon_set_duty, 1);
++static SENSOR_DEVICE_ATTR(pwm2_freq, S_IWUSR | S_IRUGO, 
++		atmel_pwm_hwmon_get_freq, atmel_pwm_hwmon_set_freq, 2);
++static SENSOR_DEVICE_ATTR(pwm2, S_IWUSR | S_IRUGO, 
++		atmel_pwm_hwmon_get_duty, atmel_pwm_hwmon_set_duty, 2);
++static SENSOR_DEVICE_ATTR(pwm3_freq, S_IWUSR | S_IRUGO, 
++		atmel_pwm_hwmon_get_freq, atmel_pwm_hwmon_set_freq, 3);
++static SENSOR_DEVICE_ATTR(pwm3, S_IWUSR | S_IRUGO, 
++		atmel_pwm_hwmon_get_duty, atmel_pwm_hwmon_set_duty, 3);
++
++static struct attribute *atmel_pwm_hwmon_attributes[] = {
++	&sensor_dev_attr_pwm0_freq.dev_attr.attr,
++	&sensor_dev_attr_pwm0.dev_attr.attr,
++	NULL,
++	&sensor_dev_attr_pwm1_freq.dev_attr.attr,
++	&sensor_dev_attr_pwm1.dev_attr.attr,
++	NULL,
++	&sensor_dev_attr_pwm2_freq.dev_attr.attr,
++	&sensor_dev_attr_pwm2.dev_attr.attr,
++	NULL,
++	&sensor_dev_attr_pwm3_freq.dev_attr.attr,
++	&sensor_dev_attr_pwm3.dev_attr.attr,
++	NULL,
++};
++
++static const struct attribute_group atmel_pwm_hwmon_group[] = {
++	{
++		.attrs = &(atmel_pwm_hwmon_attributes[0]),
++	},
++	{
++		.attrs = &(atmel_pwm_hwmon_attributes[3]),
++	},
++	{
++		.attrs = &(atmel_pwm_hwmon_attributes[6]),
++	},
++	{
++		.attrs = &(atmel_pwm_hwmon_attributes[9]),
++	},
++};
++
++static int atmel_pwm_hwmon_probe(struct platform_device *pdev)
++{
++	struct atmel_pwm_hwmon *pwmhw;
++	int retval;
++	int i;
++
++	pwmhw = kzalloc(sizeof(struct atmel_pwm_hwmon), GFP_KERNEL);
++	if (!pwmhw)
++		return -ENOMEM;
++
++	pwmhw->pdev = pdev;
++
++	for(i=0; i< ATMEL_PWM_NCHN; i++) {
++		retval = pwm_channel_alloc(i, &pwmhw->pwmc[i]);
++		if(retval) continue;
++
++		retval = sysfs_create_group(&pdev->dev.kobj,
++				&(atmel_pwm_hwmon_group[i]));
++		if(retval)
++			goto err_free_pwm;
++	}
++
++	pwmhw->hwdev = hwmon_device_register(&pdev->dev);
++	if(IS_ERR(pwmhw->hwdev)) {
++		dev_dbg(&pdev->dev, "Can't register hwmon-device\n");
++		retval = PTR_ERR(pwmhw->hwdev);
++		goto err_hwmon;
++	}
++
++	platform_set_drvdata(pdev, pwmhw);
++
++	return 0;
++
++//err_free_hwmon_dev:
++	platform_set_drvdata(pdev, NULL);
++	hwmon_device_unregister(pwmhw->hwdev);
++err_hwmon:
++	i = ATMEL_PWM_NCHN;
++err_free_pwm:
++	for(i--;i>=0;i--) {
++		sysfs_remove_group(&pdev->dev.kobj,
++				&(atmel_pwm_hwmon_group[i]));
++		pwm_channel_free(&pwmhw->pwmc[i]);
++	}
++//err_free_mem:
++	kfree(pwmhw);
++	return retval;
++}
++
++static int __exit atmel_pwm_hwmon_remove(struct platform_device *pdev)
++{
++	struct atmel_pwm_hwmon *pwmhw = platform_get_drvdata(pdev);
++	int i;
++
++	platform_set_drvdata(pdev, NULL);
++	hwmon_device_unregister(pwmhw->hwdev);
++	for(i=0;i<ATMEL_PWM_NCHN;i++)  {
++		sysfs_remove_group(&pdev->dev.kobj,
++				&(atmel_pwm_hwmon_group[i]));
++		pwm_channel_disable(&pwmhw->pwmc[i]);
++		pwm_channel_free(&pwmhw->pwmc[i]);
++	}
++	kfree(pwmhw);
++	return 0;
++}
++
++static struct platform_driver atmel_pwm_hwmon_driver = {
++	.driver = {
++		.name = "atmel-pwm-hwmon",
++	},
++	/* REVISIT add suspend() and resume() */
++	.remove = __exit_p(atmel_pwm_hwmon_remove),
++};
++
++static int __init atmel_pwm_hwmon_init(void)
++{
++	return platform_driver_probe(&atmel_pwm_hwmon_driver, atmel_pwm_hwmon_probe);
++}
++module_init(atmel_pwm_hwmon_init);
++
++static void __exit atmel_pwm_hwmon_exit(void)
++{
++	platform_driver_unregister(&atmel_pwm_hwmon_driver);
++}
++module_exit(atmel_pwm_hwmon_exit);
++
++MODULE_AUTHOR("Benjamin Tietz <benjamin.tietz@in-circuit.de>");
++MODULE_DESCRIPTION("Atmel PWM hwmon driver");
++MODULE_LICENSE("GPL");
+diff -Naur linux-2.6.28.4.orig/drivers/hwmon/Kconfig linux-2.6.28.4.shp/drivers/hwmon/Kconfig
+--- linux-2.6.28.4.orig/drivers/hwmon/Kconfig	2009-11-11 12:45:15.000000000 +0100
++++ linux-2.6.28.4.shp/drivers/hwmon/Kconfig	2009-07-07 10:26:55.000000000 +0200
+@@ -189,6 +189,15 @@
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called adt7473.
+ 
++config SENSORS_ATM_PWM
++        tristate "Atmel PWM"
++        depends on ATMEL_PWM
++        help
++	  This is some kind of userspace-interface for the PWMs found in some
++	  Atmel Processors (like AP7000)
++	  Your Board-Code must set the needed Pins to be PWM!
++
++
+ config SENSORS_K8TEMP
+ 	tristate "AMD Athlon64/FX or Opteron temperature sensor"
+ 	depends on X86 && PCI && EXPERIMENTAL
+diff -Naur linux-2.6.28.4.orig/drivers/hwmon/Makefile linux-2.6.28.4.shp/drivers/hwmon/Makefile
+--- linux-2.6.28.4.orig/drivers/hwmon/Makefile	2009-11-11 12:45:15.000000000 +0100
++++ linux-2.6.28.4.shp/drivers/hwmon/Makefile	2009-07-07 10:24:28.000000000 +0200
+@@ -27,6 +27,7 @@
+ obj-$(CONFIG_SENSORS_ADS7828)	+= ads7828.o
+ obj-$(CONFIG_SENSORS_ADT7462)	+= adt7462.o
+ obj-$(CONFIG_SENSORS_ADT7470)	+= adt7470.o
++obj-$(CONFIG_SENSORS_ATM_PWM)   += atm_pwm.o
+ obj-$(CONFIG_SENSORS_ADT7473)	+= adt7473.o
+ obj-$(CONFIG_SENSORS_APPLESMC)	+= applesmc.o
+ obj-$(CONFIG_SENSORS_AMS)	+= ams/
+diff -Naur linux-2.6.28.4.orig/arch/avr32/boards/icnova/Kconfig linux-2.6.28.4.new/arch/avr32/boards/icnova/Kconfig
+--- linux-2.6.28.4.orig/arch/avr32/boards/icnova/Kconfig	2009-11-11 12:45:12.000000000 +0100
++++ linux-2.6.28.4.new/arch/avr32/boards/icnova/Kconfig	2009-11-11 11:18:30.000000000 +0100
+@@ -389,4 +389,23 @@
+ 	int "AC97 Reset Pin"
+ 	depends on BOARD_ICNOVA_AC97
+ 
++config BOARD_ICNOVA_PWM
++	bool "Use PWM-Pins"
++
++if BOARD_ICNOVA_PWM
++
++config BOARD_ICNOVA_PWM0
++	bool "Use PWM0"
++
++config BOARD_ICNOVA_PWM1
++	bool "Use PWM1"
++
++config BOARD_ICNOVA_PWM2
++	bool "Use PWM2"
++
++config BOARD_ICNOVA_PWM3
++	bool "Use PWM3"
++
++endif
++
+ endif

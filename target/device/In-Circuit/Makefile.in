@@ -1,0 +1,20 @@
+
+ifeq ($(BR2_TARGET_ICNOVA),y)
+
+IC_PATH=target/device/In-Circuit
+BOARD_PATH=$(IC_PATH)/$(REAL_BOARD_NAME)
+BR2_PACKAGE_BUSYBOX_CONFIG=$(IC_PATH)/busybox.config
+UCLIBC_CONFIG_FILE=$(IC_PATH)/uclibc.config
+BR2_PACKAGE_LINUX_KCONFIG = $(BOARD_PATH)/kernel.config
+TARGET_DEVICE_TABLE=$(BOARD_PATH)/device_table.txt
+KERNEL_HEADERS_PATCH_DIR=$(IC_PATH)/kernel/
+
+ifeq ($(BR2_TARGET_G45),y)
+UCLIBC_CONFIG_FILE=$(IC_PATH)/uclibc.g45.config
+else
+LINUX26_BINLOC:=arch/$(KERNEL_ARCH)/boot/images/uImage
+endif
+
+include target/device/Atmel/at91bootstrap/at91bootstrap.mk
+
+endif

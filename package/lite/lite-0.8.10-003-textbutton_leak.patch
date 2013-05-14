@@ -1,0 +1,23 @@
+--- LiTE-0.8.10/leck/textbutton.c	2008-09-09 17:20:30.000000000 +0200
++++ LiTE-0.8.10_patched/leck/textbutton.c	2009-04-15 11:54:26.000000000 +0200
+@@ -125,10 +125,11 @@
+ {
+      LITE_NULL_PARAMETER_CHECK(button);
+      if( !caption_text )
+-          caption_text = "";
++          caption_text = D_STRDUP("");
+ 
+      if( strcmp(button->caption_text, caption_text) )
+      {
++	 D_FREE(button->caption_text);
+           button->caption_text = D_STRDUP(caption_text);
+           lite_update_box(LITE_BOX(button), NULL);
+      }
+@@ -272,6 +273,7 @@
+ 
+      if (!button)
+           return DFB_FAILURE;
++    D_FREE( button->caption_text );
+     return lite_destroy_box(box);
+ }
+ 

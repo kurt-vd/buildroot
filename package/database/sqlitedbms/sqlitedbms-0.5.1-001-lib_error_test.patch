@@ -1,0 +1,26 @@
+--- sqlitedbms-0.5.1_virgin/src/lib/sqlited_response.c	2006-11-10 11:02:12.000000000 +0100
++++ sqlitedbms-0.5.1_patched/src/lib/sqlited_response.c	2009-02-19 10:28:23.000000000 +0100
+@@ -23,7 +23,7 @@
+ #endif
+ 			result = read( db->sock, &(db->recv_buf[db->recv_length]), db->recv_buf_size-db->recv_length );
+ 
+-		if ( result < 0 )
++		if ( result <= 0 )
+ 			break;
+ 		db->recv_length += result;
+ 		result = _sqlited_response_pre_parse( db );
+@@ -421,6 +421,14 @@
+ 		{
+ 			switch ( buf[i+1] )
+ 			{
++                               case 'a':
++                                       if ( i < len-4 && buf[i+2] == 'm' && buf[i+3] == 'p' && buf[i+4] == ';' )
++                                       {
++                                               buf[idx] = '&';
++                                               i +=4;
++                                               goto next_loop;
++                                       }
++                               break;
+ 				case 'l':
+ 					if ( buf[i+2] == 't' && buf[i+3] == ';' )
+ 					{

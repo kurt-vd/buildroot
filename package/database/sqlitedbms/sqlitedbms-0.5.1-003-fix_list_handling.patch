@@ -1,0 +1,67 @@
+diff -Naur sqlitedbms-0.5.1.orig/src/lib/sqlited_fetch.c sqlitedbms-0.5.1/src/lib/sqlited_fetch.c
+--- sqlitedbms-0.5.1.orig/src/lib/sqlited_fetch.c	2006-11-10 10:48:39.000000000 +0100
++++ sqlitedbms-0.5.1/src/lib/sqlited_fetch.c	2009-05-06 19:10:48.000000000 +0200
+@@ -100,6 +100,7 @@
+ {
+ 	sqlited_result	*res;
+ 	sqlited_result	*prev = NULL;
++	sqlited_result	*next;
+ 
+ 	if ( result == NULL || result->type == SQLITED_RESULT_MSG )
+ 		return;
+@@ -124,17 +125,19 @@
+ 	if ( result->raw != NULL )
+ 		free( result->raw );
+ 
+-	for ( res = result->db->result; res; res=res->next )
++	for ( res = result->db->result; res; res=next )
+ 	{
++		next = res->next;
+ 		if ( res == result )
+ 		{
+ 			if ( prev )
+-				prev->next = res->next;
++				prev->next = next;
+ 			else
+-				result->db->result = res->next;
++				result->db->result = next;
+ 			free( res );
++		} else {
++			prev = res;
+ 		}
+-		prev = res;
+ 		/* Patched by http://sourceforge.net/tracker/index.php?func=detail&aid=1593750&group_id=106881&atid=645895 */
+ 		if(!result->db->result) break;
+ 	}
+diff -Naur sqlitedbms-0.5.1.orig/src/lib/sqlited_pstmt.c sqlitedbms-0.5.1/src/lib/sqlited_pstmt.c
+--- sqlitedbms-0.5.1.orig/src/lib/sqlited_pstmt.c	2009-05-06 15:11:41.000000000 +0200
++++ sqlitedbms-0.5.1/src/lib/sqlited_pstmt.c	2009-05-06 19:13:56.000000000 +0200
+@@ -190,6 +190,7 @@
+ 	char			extend[REQUEST_EXTEND_LEN];
+ 	sqlited_pstmt		*res;
+ 	sqlited_pstmt		*prev = NULL;
++	sqlited_pstmt		*next = NULL;
+ 
+ 	if ( pstmt == NULL )
+ 		return SQLITED_ERROR;
+@@ -202,7 +202,7 @@
+ 
+ 	result = _sqlited_pstmt_request( pstmt );
+ 
+-	for ( res = pstmt->db->pstmt; res; res=res->next )
++	for ( res = pstmt->db->pstmt; res; res = next )
+ 	{
+ 		next = res->next;
+ 		if ( res == pstmt )
+diff -Naur sqlitedbms-0.5.1.orig/src/lib/sqlited_response.c sqlitedbms-0.5.1/src/lib/sqlited_response.c
+--- sqlitedbms-0.5.1.orig/src/lib/sqlited_response.c	2009-05-06 15:05:20.000000000 +0200
++++ sqlitedbms-0.5.1/src/lib/sqlited_response.c	2006-11-10 11:02:12.000000000 +0100
+@@ -23,7 +23,7 @@
+ #endif
+ 			result = read( db->sock, &(db->recv_buf[db->recv_length]), db->recv_buf_size-db->recv_length );
+ 
+-		if ( result <= 0 )
++		if ( result < 0 )
+ 			break;
+ 		db->recv_length += result;
+ 		result = _sqlited_response_pre_parse( db );

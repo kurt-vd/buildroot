@@ -1,0 +1,42 @@
+diff -Naur linux-2.6.28.4/arch/avr32/mach-at32ap/pio.c linux-2.6.28.4.fixed/arch/avr32/mach-at32ap/pio.c
+--- linux-2.6.28.4/arch/avr32/mach-at32ap/pio.c	2009-04-07 13:20:12.000000000 +0200
++++ linux-2.6.28.4.fixed/arch/avr32/mach-at32ap/pio.c	2009-04-07 12:08:56.000000000 +0200
+@@ -105,9 +105,6 @@
+ 	unsigned int pin_index = pin & 0x1f;
+ 	u32 mask = 1 << pin_index;
+ 
+-	pr_info("Requested PIN%i\n", pin);
+-	dump_stack();
+-
+ 	pio = gpio_to_pio(pin);
+ 	if (unlikely(!pio)) {
+ 		printk("pio: invalid pin %u\n", pin);
+diff -Naur linux-2.6.28.4/fs/lockd/mon.c linux-2.6.28.4.fixed/fs/lockd/mon.c
+--- linux-2.6.28.4/fs/lockd/mon.c	2009-04-07 13:20:16.000000000 +0200
++++ linux-2.6.28.4.fixed/fs/lockd/mon.c	2009-04-07 12:07:14.000000000 +0200
+@@ -272,12 +272,13 @@
+  */
+ static void nsm_init_private(struct nsm_handle *nsm)
+ {
+-	u64 *p = (u64 *)&nsm->sm_priv.data;
++	u64 p[2];
+ 	struct timespec ts;
+ 
+ 	ktime_get_ts(&ts);
+-	*p++ = timespec_to_ns(&ts);
+-	*p = (unsigned long)nsm;
++	p[0] = timespec_to_ns(&ts);
++	p[1] = (unsigned long)nsm;
++	memcpy(&nsm->sm_priv.data, p, 16);
+ }
+ 
+ static struct nsm_handle *nsm_create_handle(const struct sockaddr *sap,
+@@ -344,7 +345,7 @@
+ 	if (cached != NULL) {
+ 		atomic_inc(&cached->sm_count);
+ 		spin_unlock(&nsm_lock);
+-		kfree(new);
++		if(new) kfree(new);
+ 		dprintk("lockd: found nsm_handle for %s (%s), "
+ 				"cnt %d\n", cached->sm_name,
+ 				cached->sm_addrbuf,

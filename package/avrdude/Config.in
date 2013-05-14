@@ -1,0 +1,4 @@
+config BR2_PACKAGE_AVRDUDE
+	bool "avrdude"
+	help
+	  Programming AVR8

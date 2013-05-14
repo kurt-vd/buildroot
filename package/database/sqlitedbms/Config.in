@@ -1,0 +1,10 @@
+config BR2_PACKAGE_SQLITEDBMS
+	bool "sqlitedbms"
+	default n
+	select BR2_PACKAGE_SQLITE
+	help
+	  this is a TCP/IP access layer for SQLite
+	  SQLite is a small C library that implements a self-contained,
+	  embeddable, zero-configuration SQL database engine.
+	  
+	  http://sqlitedbms.sourceforge.net

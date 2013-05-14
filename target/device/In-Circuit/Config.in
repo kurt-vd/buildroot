@@ -1,0 +1,149 @@
+menuconfig BR2_TARGET_ICNOVA
+	bool "In-Circuit ICnova"
+	depends on BR2_avr32 || BR2_arm
+
+if BR2_TARGET_ICNOVA
+
+config BR2_TARGET_G45
+	bool 
+
+choice
+	prompt "ICnova option"
+
+config BR2_TARGET_ICNOVA_BASE
+	bool "ICnova Base"
+	depends on BR2_avr32
+
+config BR2_TARGET_ICNOVA_OEM
+	bool "ICnova OEM"
+	depends on BR2_avr32
+	help
+	  Build for an ICnova OEM based board
+
+config BR2_TARGET_ICNOVA_OEMPLUS
+	bool "ICnova OEM+"
+	depends on BR2_avr32
+	help
+	  Build for an ICnova OEM+ based board
+
+config BR2_TARGET_ICNOVA_ADB1000
+	bool "ICnova ADB1000 with OEM"
+	depends on BR2_avr32
+	help
+	  Use this for the ICnova ADB1000 Starterkit
+
+config BR2_TARGET_ICNOVA_ADB1000PLUS
+	bool "ICnova ADB1000 with OEM+"
+	depends on BR2_avr32
+	help
+	  Use this for the ICnova ADB1000 Starterkit Plus
+
+config BR2_TARGET_ICNOVA_ADB1000G45
+	bool "ICnova ADB1000 with G45"
+	depends on BR2_arm
+	select BR2_TARGET_G45
+	help
+	  Use this for the ICnova ADB1000 Starterkit G45
+
+config BR2_TARGET_ICNOVA_ADB1001
+	bool "ICnova ADB1001 with OEM"
+	depends on BR2_avr32
+	help
+	  Use this for the ICnova ADB1001 eNGW and an ICnova OEM
+
+config BR2_TARGET_ICNOVA_ADB1001PLUS
+	bool "ICnova ADB1001 with OEM+"
+	depends on BR2_avr32
+	help
+	  Use this for the ICnova ADB1001 eNGW and an ICnova OEM+
+
+config BR2_TARGET_ICNOVA_ADB1002G45
+	bool "ICnova ADB1002 with G45"
+	depends on BR2_arm
+	select BR2_TARGET_G45
+	help
+	  Use this for the ICnova ADB1002 and an ICnova G45
+
+config BR2_TARGET_ICNOVA_ADB1004G45
+	bool "ICnova ADB1004 with G45"
+	depends on BR2_arm
+	select BR2_TARGET_G45
+	help
+	  Use this for the ICnova ADB1004 and an ICnova G45
+
+config BR2_TARGET_ICNOVA_ADB1004G45B5IN
+	bool "ICnova ADB1004b with G45 and 5inch Display"
+	depends on BR2_arm
+	select BR2_TARGET_G45
+	help
+	  Use this for the ICnova ADB1004 revB and an ICnova G45
+
+config BR2_TARGET_ICNOVA_ADB3000G45
+	bool "ICnova ADB3000 with G45"
+	depends on BR2_arm
+	select BR2_TARGET_G45
+	help
+	  Use this for the ICnova ADB3000 and an ICnova G45/FPGA
+
+config BR2_TARGET_ICNOVA_ADB4000G45
+	bool "ICnova ADB4000 with G45"
+	depends on BR2_arm
+	select BR2_TARGET_G45
+	help
+	  Use this for the ICnova ADB4000 Starterkit G45
+
+config BR2_TARGET_ICNOVA_ADB4000G455IN
+	bool "ICnova ADB4000 with G45 and 5inch display"
+	depends on BR2_arm
+	select BR2_TARGET_G45
+	help
+	  Use this for the ICnova ADB4000 Starterkit G45 supplied with a
+	  5 inch Display and no sound.
+
+endchoice
+
+config REAL_BOARD_NAME
+	string
+	default "icnova_base" if BR2_TARGET_ICNOVA_BASE
+	default "icnova_oem" if BR2_TARGET_ICNOVA_OEM
+	default "icnova_oemplus" if BR2_TARGET_ICNOVA_OEMPLUS
+	default "icnova_adb1000" if BR2_TARGET_ICNOVA_ADB1000
+	default "icnova_adb1000plus" if BR2_TARGET_ICNOVA_ADB1000PLUS
+	default "icnova_adb1000g45" if BR2_TARGET_ICNOVA_ADB1000G45
+	default "icnova_adb1001" if BR2_TARGET_ICNOVA_ADB1001
+	default "icnova_adb1001plus" if BR2_TARGET_ICNOVA_ADB1001PLUS
+	default "icnova_adb1002g45" if BR2_TARGET_ICNOVA_ADB1002G45
+	default "icnova_adb1004g45" if BR2_TARGET_ICNOVA_ADB1004G45
+	default "icnova_adb1004g45b5in" if BR2_TARGET_ICNOVA_ADB1004G45B5IN
+	default "icnova_adb3000g45" if BR2_TARGET_ICNOVA_ADB3000G45
+	default "icnova_adb4000g45" if BR2_TARGET_ICNOVA_ADB4000G45
+	default "icnova_adb4000g455in" if BR2_TARGET_ICNOVA_ADB4000G455IN
+
+config BR2_BOARD_NAME
+	string
+	default "icnova_base" if BR2_TARGET_ICNOVA_BASE
+	default "icnova_oem" if BR2_TARGET_ICNOVA_OEM
+	default "icnova_oemplus" if BR2_TARGET_ICNOVA_OEMPLUS
+	default "icnova_oem" if BR2_TARGET_ICNOVA_ADB1000
+	default "icnova_oemplus" if BR2_TARGET_ICNOVA_ADB1000PLUS
+	default "icnova_arm9oem" if BR2_TARGET_ICNOVA_ADB1000G45
+	default "icnova_oem2nw" if BR2_TARGET_ICNOVA_ADB1001
+	default "icnova_oemplus2nw" if BR2_TARGET_ICNOVA_ADB1001PLUS
+	default "icnova_arm9oem" if BR2_TARGET_ICNOVA_ADB1002G45
+	default "icnova_arm9oem" if BR2_TARGET_ICNOVA_ADB1004G45
+	default "icnova_arm9oem" if BR2_TARGET_ICNOVA_ADB1004G45B5IN
+	default "icnova_arm9oem_u4" if BR2_TARGET_ICNOVA_ADB3000G45
+	default "icnova_arm9sodimm" if BR2_TARGET_ICNOVA_ADB4000G45
+	default "icnova_arm9sodimm" if BR2_TARGET_ICNOVA_ADB4000G455IN
+
+config BOARD_NAME
+	string
+	default $(BR2_BOARD_NAME)
+
+config BR2_TARGET_UBOOT_BOARDNAME
+	string
+	default $(BR2_BOARD_NAME)
+
+source target/device/Atmel/at91bootstrap/Config.in
+
+endif

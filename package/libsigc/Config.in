@@ -1,0 +1,10 @@
+config BR2_PACKAGE_LIBSIGC
+	bool "libsigc++"
+	depends on BR2_INSTALL_LIBSTDCPP
+	help
+	  The LibSigC++
+
+	  http://libsigc.sourceforge.net
+
+comment "libsigc++ requires a toolchain with C++ support enabled"
+	depends on !BR2_INSTALL_LIBSTDCPP
