@@ -3,6 +3,7 @@
 mount -tproc proc /proc
 mount -tsysfs sys /sys
 mount -ttmpfs tmp /tmp
+mount -tdevpts devpts /dev/pts
 
 ip link set lo up
 #ip addr add 127.0.0.1/8 dev lo
