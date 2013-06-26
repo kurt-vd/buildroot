@@ -21,7 +21,7 @@
 #null::sysinit:/sbin/ifconfig lo 127.0.0.1 up
 #null::sysinit:/sbin/route add -net 127.0.0.0 netmask 255.0.0.0 lo
 # now run any rc scripts
-::sysinit:/etc/init.d/rcBoot
+::sysinit:/etc/rc.boot
 ::sysinit:/etc/init.d/rcS
 
 # Set up a couple of getty's
