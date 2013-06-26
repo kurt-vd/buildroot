@@ -23,6 +23,7 @@
 # now run any rc scripts
 ::sysinit:/etc/rc.boot
 ::sysinit:/etc/init.d/rcS
+::sysinit:/etc/rc.opt
 
 # Set up a couple of getty's
 #tty1::respawn:/sbin/getty 38400 tty1

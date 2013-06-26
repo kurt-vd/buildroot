@@ -1,0 +1,6 @@
+#!/bin/sh
+
+mount -t jffs2 mtd3 /opt || exit 1
+echo "[OPT mounted]"
+[ -f /opt/etc/rc.boot ] && \
+	/opt/etc/rc.boot
