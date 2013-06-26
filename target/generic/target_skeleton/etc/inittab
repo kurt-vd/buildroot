@@ -23,7 +23,6 @@
 # now run any rc scripts
 null::sysinit:/sbin/hwclock -s -l
 ::sysinit:/etc/rc.boot
-::sysinit:/etc/init.d/rcS
 ::sysinit:/etc/rc.opt
 
 # Set up a couple of getty's
@@ -35,6 +34,9 @@ ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100
 #ttyS1::respawn:/sbin/getty -L ttyS1 38400 vt100
 #ttyS0::respawn:-/bin/sh
 ttyGS0::respawn:/sbin/getty -L ttyGS0 115200 vt100
+
+# regular SYSV init
+::sysinit:/etc/init.d/rcS
 
 # Logging junk
 null::sysinit:/bin/touch /var/log/messages
@@ -50,5 +52,4 @@ null::shutdown:/sbin/hwclock -w -l
 null::shutdown:/usr/bin/killall klogd
 null::shutdown:/usr/bin/killall syslogd
 null::shutdown:/bin/umount -a -r
-null::shutdown:/sbin/swapoff -a
 
