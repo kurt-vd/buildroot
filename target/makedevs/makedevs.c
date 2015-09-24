@@ -532,4 +532,6 @@ loop:
 		bb_error_msg("sync failed, continuing anyway");
 
 	return 0;
+	/* avoid warning/error: unused variable */
+	(void)ret;
 }
