@@ -19,8 +19,8 @@ echo 13 > /sys/class/gpio/export
 echo 30 > /sys/class/gpio/export
 echo low > /sys/class/gpio/gpio30/direction
 
-ip link set eth0 up
-udhcpc -qi eth0 &
+#ip link set eth0 up
+#udhcpc -qi eth0 &
 
 ip link set usb0 up
 ip addr add 192.168.255.1/24 dev usb0
