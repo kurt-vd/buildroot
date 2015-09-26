@@ -1,0 +1,13 @@
+config BR2_PACKAGE_LIBIO
+	bool "libio utilities"
+	help
+	  libio is a set of small IO handling uitilities.
+
+if BR2_PACKAGE_LIBIO
+config BR2_PACKAGE_LIBIO_PRESET
+	string "predefined automation to install"
+	help
+	  Select the automation scripts to install. Supported values are
+	  ha2	- My first home 2nd floor automation
+	  mb	- Macbook
+endif
