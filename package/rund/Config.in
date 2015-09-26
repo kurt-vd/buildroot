@@ -1,0 +1,9 @@
+config BR2_PACKAGE_RUND
+	bool "rund init daemon"
+	help
+	  /sbin/init - parent of all processes
+
+if BR2_PACKAGE_RUND
+config BR2_PACKAGE_RUND_INIT
+	bool "symlink rund as /sbin/init"
+endif

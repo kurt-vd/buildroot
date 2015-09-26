@@ -1,0 +1,91 @@
+#!/bin/sh
+
+PATH=/usr/sbin:/sbin:/usr/bin:/bin
+
+echo "[`ktstamp -k`] start system ..."
+# export PATH to rund
+runc env PATH=$PATH
+
+# mount filesystems
+mount -tproc proc /proc &
+mount -tsysfs sys /sys &
+mount -ttmpfs tmp /tmp &
+{
+	mount -tdevtmpfs dev /dev
+	mkdir -p /dev/pts
+	mount -tdevpts devpts /dev/pts
+} &
+
+ip link set lo up &
+#ip addr add 127.0.0.1/8 dev lo
+
+hostname -F /etc/hostname &
+
+wait
+
+echo "[`ktstamp -k`] restore state ..."
+
+{
+	mount -tjffs2 mtd3 /opt || \
+		echo "[/OPT failed]"
+
+} &
+
+echo heartbeat > /sys/class/leds/power/trigger &
+
+{
+	echo "setup GPIO"
+	echo 13 > /sys/class/gpio/export
+	echo 30 > /sys/class/gpio/export
+	echo low > /sys/class/gpio/gpio30/direction
+} &
+
+# hardware clock
+hwclock -s -l &
+
+wait
+echo "[`ktstamp -k`] start services ..."
+
+#ip link set eth0 up
+#udhcpc -qi eth0 &
+
+{
+	ip link set usb0 up
+	ip addr add 192.168.255.1/24 dev usb0
+	runc add udhcpd -f /etc/udhcpd-usb0.conf
+} &
+
+for dir in /var/cache /var/log; do
+	mkdir -p `readlink -m $dir`
+done
+
+if [ -f /var/cache/random-seed ]; then 
+	echo "[`ktstamp -k`] Set random seed"
+	cat /var/cache/random-seed > /dev/urandom
+fi
+
+# Logging junk
+touch /var/log/messages
+runc add syslogd -n -m 0
+runc add klogd -n
+
+# services
+runc add httpd -f -h /var/www
+runc add dropbear -F
+
+# terminals
+runc add getty -L ttyS0 115200 vt100
+runc add getty -L ttyGS0 115200 vt100
+
+SVCS=`ha2 services`
+echo "[`ktstamp -k`] start ha2 [$SVCS]..."
+for SVC in $SVCS; do
+	runc add ha2 $SVC
+done
+
+if [ -x /opt/etc/rc.local ]; then
+	echo "[`ktstamp -k`] run /opt/etc/rc.local ..."
+	/opt/etc/rc.local "$@"
+fi
+
+echo "[`ktstamp -k`] system up"

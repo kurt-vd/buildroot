@@ -1,0 +1,35 @@
+#!/bin/sh
+
+PATH=/usr/sbin:/sbin:/usr/bin:/bin
+
+echo "[`ktstamp -k`] save state ..."
+
+# fix LED
+POWERLED=/sys/class/leds/power
+echo timer > $POWERLED/trigger
+echo 100 > $POWERLED/delay_on
+echo 100 > $POWERLED/delay_off
+
+dd if=/dev/urandom of=/var/cache/random-seed iflag=nonblock count=1 bs=512 2>/dev/null &
+
+# save clock
+hwclock -w -l &
+
+if [ -x /opt/etc/rc.shutdown ]; then
+	echo "[`ktstamp -k`] $1 /opt ..."
+	/opt/etc/rc.shutdown "$@"
+fi
+
+wait
+
+echo "[`ktstamp -k`] stop services ..."
+
+# Stuff to do before rebooting
+runc remove "*"
+runc -r0.25 -m10 removing
+
+echo "[`ktstamp -k`] $1 system ..."
+mount -o remount,ro /
+umount -a -r
+
+echo "[`ktstamp -k`] bye!"
