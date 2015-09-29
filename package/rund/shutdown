@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# TODO: write utmp
+
+case "$0" in
+*halt)
+	exec kill -USR1 1
+	;;
+*reboot)
+	exec kill -INT 1
+	;;
+*poweroff|*shutdown)
+	exec kill -TERM 1
+	;;
+esac

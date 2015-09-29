@@ -3,7 +3,7 @@
 # rund
 #
 #############################################################
-RUND_VERSION:=v0.63
+RUND_VERSION:=v0.67
 #RUND_GIT:=git://github.com/kurt-vd/rund
 RUND_GIT:=git://www.vandijck-laurijssen.be/rund
 #RUND_SOURCE:=rund-$(RUND_VERSION).tgz
@@ -43,6 +43,10 @@ ifeq ($(BR2_PACKAGE_RUND_INIT),y)
 endif
 	$(INSTALL) -m 755 package/rund/rc.init $(TARGET_DIR)/etc/rc.init
 	$(INSTALL) -m 755 package/rund/rc.shutdown $(TARGET_DIR)/etc/rc.shutdown
+	$(INSTALL) package/rund/shutdown $(TARGET_DIR)/sbin/
+	ln -s shutdown $(TARGET_DIR)/sbin/halt
+	ln -s shutdown $(TARGET_DIR)/sbin/reboot
+	ln -s shutdown $(TARGET_DIR)/sbin/poweroff
 
 rund: uclibc $(TARGET_DIR)/$(RUND_TARGET_BINARY)
 

@@ -33,3 +33,5 @@ mount -o remount,ro /
 umount -a -r
 
 echo "[`ktstamp -k`] bye!"
+
+sysreboot "$1"
