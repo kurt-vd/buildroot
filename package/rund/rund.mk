@@ -45,6 +45,9 @@ endif
 	$(INSTALL) -m 755 package/rund/rc.shutdown $(TARGET_DIR)/etc/rc.shutdown
 ifeq ($(BR2_PACKAGE_RUND_HALT),y)
 	$(INSTALL) $(RUND_DIR)/shutdown $(TARGET_DIR)/sbin/
+	rm -f $(TARGET_DIR)/sbin/halt
+	rm -f $(TARGET_DIR)/sbin/reboot
+	rm -f $(TARGET_DIR)/sbin/poweroff
 	ln -s shutdown $(TARGET_DIR)/sbin/halt
 	ln -s shutdown $(TARGET_DIR)/sbin/reboot
 	ln -s shutdown $(TARGET_DIR)/sbin/poweroff
@@ -59,6 +62,12 @@ rund-clean:
 	rm -f $(TARGET_DIR)/bin/ktstamp
 ifeq ($(BR2_PACKAGE_RUND_INIT),y)
 	rm -f $(TARGET_DIR)/sbin/init
+endif
+ifeq ($(BR2_PACKAGE_RUND_HALT),y)
+	rm -f $(TARGET_DIR)/sbin/shutdown
+	rm -f $(TARGET_DIR)/sbin/halt
+	rm -f $(TARGET_DIR)/sbin/reboot
+	rm -f $(TARGET_DIR)/sbin/poweroff
 endif
 	-$(MAKE) -C $(RUND_DIR) clean
 
