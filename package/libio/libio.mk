@@ -39,8 +39,7 @@ $(TARGET_DIR)/$(LIBIO_TARGET_BINARY): $(LIBIO_DIR)/$(LIBIO_BINARY)
 	install -v -d $(TARGET_DIR)/usr/share/libio
 	install -v -m 0644 $(wildcard $(LIBIO_DIR)/*.conf) $(TARGET_DIR)/usr/share/libio
 ifneq ($(BR2_PACKAGE_LIBIO_PRESET),)
-	sed -e "s,@PRESET@,$(BR2_PACKAGE_LIBIO_PRESET),g" package/libio/libio-presets.conf > $(TARGET_DIR)/etc/libio-presets.conf
-	sed -e "s,@PRESET@,$(BR2_PACKAGE_LIBIO_PRESET),g" package/libio/libio-consts.conf > $(TARGET_DIR)/etc/libio-consts.conf
+	sed -e "s,@PRESET@,$(BR2_PACKAGE_LIBIO_PRESET),g" package/libio/libio.conf > $(TARGET_DIR)/etc/libio.conf
 ifeq ($(BR2_PACKAGE_RUND),y)
 	install -d $(TARGET_DIR)/etc/run.d
 	sed -e "s,@PRESET@,$(BR2_PACKAGE_LIBIO_PRESET),g" package/libio/libio-start.sh > $(TARGET_DIR)/etc/run.d/S80libio
