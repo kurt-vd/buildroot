@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ "$1" = "-noinit" ]; then
+	# protect against exec'd instance of rund
+	exit 0;
+fi
+
 PATH=/usr/sbin:/sbin:/usr/bin:/bin
 
 echo "[`ktstamp -k`] start system ..."
@@ -7,21 +12,20 @@ echo "[`ktstamp -k`] start system ..."
 runc env PATH=$PATH
 
 # mount filesystems
-mount -tproc proc /proc &
-mount -tsysfs sys /sys &
-mount -ttmpfs tmp /tmp &
-{
-	mount -tdevtmpfs dev /dev
-	mkdir -p /dev/pts
-	mount -tdevpts devpts /dev/pts
-} &
+mount -tproc proc /proc
+mount -tsysfs sys /sys
+mount -ttmpfs tmp /tmp
+mount -tdevtmpfs dev /dev
+mkdir -p /dev/pts
+mount -tdevpts devpts /dev/pts
 
-ip link set lo up &
+ip link set lo up
 #ip addr add 127.0.0.1/8 dev lo
 
-hostname -F /etc/hostname &
+hostname -F /etc/hostname
 
-wait
+# without device manager, add watchdog triggers here
+for WDT in /dev/watchdog?; do runc watchdog $WDT; done
 
 echo "[`ktstamp -k`] restore state ..."
 
@@ -44,6 +48,16 @@ echo heartbeat > /sys/class/leds/power/trigger &
 hwclock -s -l &
 
 wait
+
+# restore random seed
+{
+	if [ -f /var/cache/random-seed ]; then 
+		echo "[`ktstamp -k`] Set random seed"
+		cat /var/cache/random-seed > /dev/urandom
+	fi
+} &
+
+wait
 echo "[`ktstamp -k`] start services ..."
 
 #ip link set eth0 up
@@ -55,33 +69,48 @@ echo "[`ktstamp -k`] start services ..."
 	runc add udhcpd -f /etc/udhcpd-usb0.conf
 } &
 
-for dir in /var/cache /var/log; do
-	mkdir -p `readlink -m $dir`
-done
-
-if [ -f /var/cache/random-seed ]; then 
-	echo "[`ktstamp -k`] Set random seed"
-	cat /var/cache/random-seed > /dev/urandom
-fi
+mkdir -p /opt/var/cache /opt/var/log
 
 # Logging junk
 touch /var/log/messages
-runc add syslogd -n -m 0
+runc add syslogd -n -b5
 runc add klogd -n
 
 # services
 runc add httpd -f -h /var/www
-runc add dropbear -F
+
+{
+	KEYDIR=/opt/etc
+	# Check for the Dropbear RSA key
+	if [ ! -f $KEYDIR/rsa_host_key ] ; then
+		echo "[`ktstamp -k`] Generating RSA key ..."
+		dropbearkey -t rsa -f $KEYDIR/rsa_host_key
+	fi
+
+	# Check for the Dropbear DSS key
+	if [ ! -f $KEYDIR/dss_host_key ] ; then
+		echo "[`ktstamp -k`] Generating DSA key ..."
+		dropbearkey -t dss -f $KEYDIR/dss_host_key
+	fi
+	umask 077
+	echo "[`ktstamp -k`] start dropbear ..."
+	runc add dropbear -F -d $KEYDIR/dss_host_key -r $KEYDIR/rsa_host_key
+} &
 
 # terminals
 runc add getty -L ttyS0 115200 vt100
 runc add getty -L ttyGS0 115200 vt100
 
-SVCS=`ha2 services`
+SVCS=`ha2.sh services`
 echo "[`ktstamp -k`] start ha2 [$SVCS]..."
 for SVC in $SVCS; do
-	runc add ha2 $SVC
+	runc add ha2.sh $SVC
 done
+
+if [ -x /etc/rc.local ]; then
+	echo "[`ktstamp -k`] run /etc/rc.local ..."
+	/etc/rc.local "$@"
+fi
 
 if [ -x /opt/etc/rc.local ]; then
 	echo "[`ktstamp -k`] run /opt/etc/rc.local ..."
