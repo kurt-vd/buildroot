@@ -6,4 +6,7 @@ config BR2_PACKAGE_RUND
 if BR2_PACKAGE_RUND
 config BR2_PACKAGE_RUND_INIT
 	bool "symlink rund as /sbin/init"
+
+config BR2_PACKAGE_RUND_HALT
+	bool "install rund shutdown script"
 endif

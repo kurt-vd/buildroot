@@ -43,10 +43,12 @@ ifeq ($(BR2_PACKAGE_RUND_INIT),y)
 endif
 	$(INSTALL) -m 755 package/rund/rc.init $(TARGET_DIR)/etc/rc.init
 	$(INSTALL) -m 755 package/rund/rc.shutdown $(TARGET_DIR)/etc/rc.shutdown
-	$(INSTALL) package/rund/shutdown $(TARGET_DIR)/sbin/
+ifeq ($(BR2_PACKAGE_RUND_HALT),y)
+	$(INSTALL) $(RUND_DIR)/shutdown $(TARGET_DIR)/sbin/
 	ln -s shutdown $(TARGET_DIR)/sbin/halt
 	ln -s shutdown $(TARGET_DIR)/sbin/reboot
 	ln -s shutdown $(TARGET_DIR)/sbin/poweroff
+endif
 
 rund: uclibc $(TARGET_DIR)/$(RUND_TARGET_BINARY)
 
