@@ -4,10 +4,7 @@
 #
 #############################################################
 RUND_VERSION:=v0.71
-#RUND_GIT:=git://github.com/kurt-vd/rund
-RUND_GIT:=git://www.vandijck-laurijssen.be/rund
-#RUND_SOURCE:=rund-$(RUND_VERSION).tgz
-#RUND_SITE:=http://www.vandijck-laurijssen.be/mirror
+RUND_GIT:=git://github.com/kurt-vd/rund
 RUND_DIR:=$(BUILD_DIR)/rund
 RUND_BINARY:=rund
 RUND_TARGET_BINARY:=sbin/rund
