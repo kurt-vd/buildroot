@@ -3,7 +3,7 @@
 # rund
 #
 #############################################################
-RUND_VERSION:=v0.67
+RUND_VERSION:=v0.71
 #RUND_GIT:=git://github.com/kurt-vd/rund
 RUND_GIT:=git://www.vandijck-laurijssen.be/rund
 #RUND_SOURCE:=rund-$(RUND_VERSION).tgz

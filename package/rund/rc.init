@@ -25,7 +25,7 @@ ip link set lo up
 hostname -F /etc/hostname
 
 # without device manager, add watchdog triggers here
-for WDT in /dev/watchdog?; do runc watchdog $WDT; done
+#for WDT in /dev/watchdog*; do runc watchdog add $WDT 1; done
 
 echo "[`ktstamp -k`] restore state ..."
 
@@ -84,13 +84,13 @@ runc add httpd -f -h /var/www
 	# Check for the Dropbear RSA key
 	if [ ! -f $KEYDIR/rsa_host_key ] ; then
 		echo "[`ktstamp -k`] Generating RSA key ..."
-		dropbearkey -t rsa -f $KEYDIR/rsa_host_key
+		dropbearkey -t rsa -f $KEYDIR/rsa_host_key > /dev/null
 	fi
 
 	# Check for the Dropbear DSS key
 	if [ ! -f $KEYDIR/dss_host_key ] ; then
 		echo "[`ktstamp -k`] Generating DSA key ..."
-		dropbearkey -t dss -f $KEYDIR/dss_host_key
+		dropbearkey -t dss -f $KEYDIR/dss_host_key > /dev/null
 	fi
 	umask 077
 	echo "[`ktstamp -k`] start dropbear ..."

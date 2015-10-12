@@ -26,11 +26,14 @@ echo "[`ktstamp -k`] stop services ..."
 
 # Stuff to do before rebooting
 runc remove "*"
+# kill shells in this busybox version
+pkill -9 sh
 runc -r0.25 -m2 removing
 
 # kill remaining services ?
 
 FILESYSTEMS=`grep -v nodev /proc/filesystems | xargs echo | sed -e "s/ /,/g"`
+FILESYSTEMS="$FILESYSTEMS jffs2 ubifs"
 echo [`ktstamp -k`] Unmount $FILESYSTEMS
 umount -n -a -r -t "$FILESYSTEMS"
 if ! mount -o remount,ro /; then
