@@ -101,10 +101,10 @@ runc add httpd -f -h /var/www
 runc add getty -L ttyS0 115200 vt100
 runc add getty -L ttyGS0 115200 vt100
 
-SVCS=`ha2.sh services`
-echo "[`ktstamp -k`] start ha2 [$SVCS]..."
-for SVC in $SVCS; do
-	runc add ha2.sh $SVC
+for SVC in /etc/run.d/*; do
+	if [ -x "$SVC" ]; then
+		"$SVC" "$@"
+	fi
 done
 
 if [ -x /etc/rc.local ]; then
