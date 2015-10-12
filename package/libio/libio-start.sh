@@ -1,6 +1,6 @@
 #!/bin/sh
 
 # list services & start all of them
-@PRESET@.sh services | while read SVC; do
+for SVC in `@PRESET@.sh services`; do
 	runc add @PRESET@.sh $SVC
 done
