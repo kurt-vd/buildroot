@@ -40,9 +40,9 @@ $(TARGET_DIR)/$(LIBIO_TARGET_BINARY): $(LIBIO_DIR)/$(LIBIO_BINARY)
 ifneq ($(BR2_PACKAGE_LIBIO_PRESET),)
 	sed -e "s,@PRESET@,$(BR2_PACKAGE_LIBIO_PRESET),g" package/libio/libio.conf > $(TARGET_DIR)/etc/libio.conf
 ifeq ($(BR2_PACKAGE_RUND),y)
-	install -d $(TARGET_DIR)/etc/run.d
-	install package/libio/libio-start.sh $(TARGET_DIR)/etc/run.d/S80libio
-	sed -i -e "s,@PRESET@,$(BR2_PACKAGE_LIBIO_PRESET),g" $(TARGET_DIR)/etc/run.d/S80libio
+	install -d $(TARGET_DIR)/etc/rc.local.d
+	install package/libio/libio-start.sh $(TARGET_DIR)/etc/rc.local.d/S80libio
+	sed -i -e "s,@PRESET@,$(BR2_PACKAGE_LIBIO_PRESET),g" $(TARGET_DIR)/etc/rc.local.d/S80libio
 endif
 endif
 	install -v $(LIBIO_DIR)/io $(TARGET_DIR)/usr/bin

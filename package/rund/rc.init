@@ -101,7 +101,7 @@ runc add httpd -f -h /var/www
 runc add getty -L ttyS0 115200 vt100
 runc add getty -L ttyGS0 115200 vt100
 
-for SVC in /etc/run.d/*; do
+for SVC in /etc/rc.local.d/*; do
 	if [ -x "$SVC" ]; then
 		"$SVC" "$@"
 	fi

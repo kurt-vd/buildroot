@@ -40,6 +40,7 @@ ifeq ($(BR2_PACKAGE_RUND_INIT),y)
 endif
 	$(INSTALL) -m 755 package/rund/rc.init $(TARGET_DIR)/etc/rc.init
 	$(INSTALL) -m 755 package/rund/rc.shutdown $(TARGET_DIR)/etc/rc.shutdown
+	$(INSTALL) -d $(TARGET_DIR)/etc/rc.local.d
 ifeq ($(BR2_PACKAGE_RUND_HALT),y)
 	$(INSTALL) $(RUND_DIR)/shutdown $(TARGET_DIR)/sbin/
 	rm -f $(TARGET_DIR)/sbin/halt
