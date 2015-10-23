@@ -1,0 +1,4 @@
+config BR2_PACKAGE_INPUTEVENT
+	bool "inputevent tool"
+	help
+	  inputevent is a small tool to monitor linux input devices
