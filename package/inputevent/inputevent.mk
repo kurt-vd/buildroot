@@ -37,9 +37,6 @@ inputevent: uclibc $(TARGET_DIR)/$(INPUTEVENT_TARGET_BINARY)
 
 inputevent-clean:
 	rm -f $(TARGET_DIR)/$(INPUTEVENT_TARGET_BINARY)
-ifeq ($(BR2_PACKAGE_INPUTEVENT_HA2),y)
-	#rm -f $(TARGET_DIR)/sbin/init
-endif
 	-$(MAKE) -C $(INPUTEVENT_DIR) clean
 
 inputevent-dirclean:

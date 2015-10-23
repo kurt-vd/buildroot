@@ -51,9 +51,9 @@ libio: uclibc $(TARGET_DIR)/$(LIBIO_TARGET_BINARY)
 
 libio-clean:
 	rm -f $(TARGET_DIR)/$(LIBIO_TARGET_BINARY)
-ifeq ($(BR2_PACKAGE_LIBIO_HA2),y)
-	#rm -f $(TARGET_DIR)/sbin/init
-endif
+	rm -rf $(TARGET_DIR)/usr/share/libio
+	rm -f $(TARGET_DIR)/etc/libio.conf
+	rm -rf $(TARGET_DIR)/etc/rc.local.d/S80libio
 	-$(MAKE) -C $(LIBIO_DIR) clean
 
 libio-dirclean:
