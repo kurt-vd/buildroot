@@ -26,8 +26,8 @@ echo "[`ktstamp -k`] stop services ..."
 
 # Stuff to do before rebooting
 runc remove "*"
-# kill shells in this busybox version
-pkill -9 sh
+# kill interactive shells in this busybox version
+pkill -f -9 -sh
 runc -r0.25 -m2 removing
 
 # kill remaining services ?
