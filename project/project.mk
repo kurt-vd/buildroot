@@ -3,7 +3,8 @@ PROJECT_FILE:=$(LOCAL)/$(PROJECT)/$(PROJECT).config
 
 .PHONY: target-host-info saveconfig getconfig
 
-target-host-info: $(TARGET_DIR)/etc/issue $(TARGET_DIR)/etc/hostname $(TARGET_DIR)/etc/br-version
+target-host-info: $(TARGET_DIR)/etc/issue $(TARGET_DIR)/etc/hostname $(TARGET_DIR)/etc/br-version \
+	$(TARGET_DIR)/etc/os-release
 
 $(TARGET_DIR)/etc/issue: .config
 	mkdir -p $(TARGET_DIR)/etc
@@ -17,7 +18,18 @@ $(TARGET_DIR)/etc/hostname: .config
 
 $(TARGET_DIR)/etc/br-version: .config
 	mkdir -p $(TARGET_DIR)/etc
-	echo $(BR2_VERSION):$(shell $(TOPDIR)/scripts/setlocalversion) >$@
+	echo $(BR2_VERSION)$(shell $(TOPDIR)/scripts/setlocalversion) >$@
+
+.PHONY: $(TARGET_DIR)/etc/os-release
+$(TARGET_DIR)/etc/os-release: GITVERSION:=$(shell git describe --tags --dirty)
+$(TARGET_DIR)/etc/os-release: .config
+	@echo "generate /etc/os-release"
+	@mkdir -p $(TARGET_DIR)/etc
+	@echo "NAME=$(PROJECT)" > $@
+	@echo "VERSION=$(BR2_VERSION):$(GITVERSION)" >> $@
+	@echo "ID=$(PROJECT)" >$@
+	@echo "VERSION_ID=$(GITVERSION)" >$@
+	@echo "PRETTY_NAME=\"$(PROJECT) $(GITVERSION)\"" >$@
 
 saveconfig: $(CONFIG)/conf
 	mkdir -p $(LOCAL)/$(PROJECT)
