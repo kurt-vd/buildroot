@@ -3,7 +3,7 @@
 # libio
 #
 #############################################################
-LIBIO_VERSION:=v20151023
+LIBIO_VERSION:=v20151023b
 #LIBIO_GIT:=git://github.com/kurt-vd/libio
 LIBIO_GIT:=git://www.vandijck-laurijssen.be/libio
 #LIBIO_SOURCE:=libio-$(LIBIO_VERSION).tgz
