@@ -1,0 +1,29 @@
+--- a/scripts/unifdef.c	2015-10-24 21:40:17.849990941 +0200
++++ b/scripts/unifdef.c	2015-10-24 21:40:44.379990732 +0200
+@@ -206,7 +206,7 @@
+ static void             error(const char *);
+ static int              findsym(const char *);
+ static void             flushline(bool);
+-static Linetype         getline(void);
++static Linetype         mygetline(void);
+ static Linetype         ifeval(const char **);
+ static void             ignoreoff(void);
+ static void             ignoreon(void);
+@@ -512,7 +512,7 @@
+ 
+ 	for (;;) {
+ 		linenum++;
+-		lineval = getline();
++		lineval = mygetline();
+ 		trans_table[ifstate[depth]][lineval]();
+ 		debug("process %s -> %s depth %d",
+ 		    linetype_name[lineval],
+@@ -526,7 +526,7 @@
+  * help from skipcomment().
+  */
+ static Linetype
+-getline(void)
++mygetline(void)
+ {
+ 	const char *cp;
+ 	int cursym;

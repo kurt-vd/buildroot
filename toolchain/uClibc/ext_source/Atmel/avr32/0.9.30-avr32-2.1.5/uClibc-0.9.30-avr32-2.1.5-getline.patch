@@ -1,0 +1,30 @@
+diff -Naur uClibc-0.9.30.orig/extra/scripts/unifdef.c uClibc-0.9.30/extra/scripts/unifdef.c
+--- uClibc-0.9.30.orig/extra/scripts/unifdef.c	2008-04-28 01:10:00.000000000 +0200
++++ uClibc-0.9.30/extra/scripts/unifdef.c	2010-04-22 12:58:37.000000000 +0200
+@@ -206,7 +206,7 @@
+ static void             error(const char *);
+ static int              findsym(const char *);
+ static void             flushline(bool);
+-static Linetype         getline(void);
++static Linetype         my_getline(void);
+ static Linetype         ifeval(const char **);
+ static void             ignoreoff(void);
+ static void             ignoreon(void);
+@@ -512,7 +512,7 @@
+ 
+ 	for (;;) {
+ 		linenum++;
+-		lineval = getline();
++		lineval = my_getline();
+ 		trans_table[ifstate[depth]][lineval]();
+ 		debug("process %s -> %s depth %d",
+ 		    linetype_name[lineval],
+@@ -526,7 +526,7 @@
+  * help from skipcomment().
+  */
+ static Linetype
+-getline(void)
++my_getline(void)
+ {
+ 	const char *cp;
+ 	int cursym;
