@@ -17,7 +17,7 @@ $(TARGET_DIR)/etc/hostname: .config
 
 $(TARGET_DIR)/etc/br-version: .config
 	mkdir -p $(TARGET_DIR)/etc
-	echo $(BR2_VERSION)$(shell $(TOPDIR)/scripts/setlocalversion) >$@
+	echo $(BR2_VERSION):$(shell $(TOPDIR)/scripts/setlocalversion) >$@
 
 saveconfig: $(CONFIG)/conf
 	mkdir -p $(LOCAL)/$(PROJECT)
