@@ -27,9 +27,9 @@ $(TARGET_DIR)/etc/os-release: .config
 	@mkdir -p $(TARGET_DIR)/etc
 	@echo "NAME=$(PROJECT)" > $@
 	@echo "VERSION=$(BR2_VERSION):$(GITVERSION)" >> $@
-	@echo "ID=$(PROJECT)" >$@
-	@echo "VERSION_ID=$(GITVERSION)" >$@
-	@echo "PRETTY_NAME=\"$(PROJECT) $(GITVERSION)\"" >$@
+	@echo "ID=$(PROJECT)" >> $@
+	@echo "VERSION_ID=$(GITVERSION)" >> $@
+	@echo "PRETTY_NAME=\"$(PROJECT) $(GITVERSION)\"" >> $@
 
 saveconfig: $(CONFIG)/conf
 	mkdir -p $(LOCAL)/$(PROJECT)
