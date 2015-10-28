@@ -1,0 +1,36 @@
+--- a/svr-auth.c	2015-10-28 20:10:11.879993123 +0100
++++ b/svr-auth.c	2015-10-28 20:10:25.889993013 +0100
+@@ -248,6 +248,7 @@
+ 		return DROPBEAR_FAILURE;
+ 	}
+ 
++#if 0
+ 	/* check for an empty password */
+ 	if (ses.authstate.pw_passwd[0] == '\0') {
+ 		TRACE(("leave checkusername: empty pword"))
+@@ -256,6 +257,7 @@
+ 		send_msg_userauth_failure(0, 1);
+ 		return DROPBEAR_FAILURE;
+ 	}
++#endif
+ 
+ 	TRACE(("shell is %s", ses.authstate.pw_shell))
+ 
+--- a/svr-authpasswd.c	2015-10-28 20:10:16.179993089 +0100
++++ b/svr-authpasswd.c	2015-10-28 20:11:51.369992337 +0100
+@@ -60,6 +60,7 @@
+ 	passwdcrypt = DEBUG_HACKCRYPT;
+ #endif
+ 
++#if 0
+ 	/* check for empty password - need to do this again here
+ 	 * since the shadow password may differ to that tested
+ 	 * in auth.c */
+@@ -69,6 +70,7 @@
+ 		send_msg_userauth_failure(0, 1);
+ 		return;
+ 	}
++#endif
+ 
+ 	/* check if client wants to change password */
+ 	changepw = buf_getbool(ses.payload);
