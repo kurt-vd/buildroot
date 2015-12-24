@@ -25,7 +25,7 @@
 #--------------------------------------------------------------
 
 # Trick for always running with a fixed umask
-UMASK = 0022
+UMASK = 022
 ifneq ($(shell umask),$(UMASK))
 .PHONY: _all $(MAKECMDGOALS)
 
