@@ -35,7 +35,7 @@ basename="${4}"
 git_done=0
 if [ -n "$(${GIT} ls-remote "${repo}" "${cset}" 2>&1)" ]; then
     printf "Doing shallow clone\n"
-    if ${GIT} clone ${verbose} --depth 1 -b "${cset}" --bare "${repo}" "${basename}"; then
+    if ${GIT} clone ${verbose} --depth 1 -b "${cset}" "${repo}" "${basename}"; then
         git_done=1
     else
         printf "Shallow clone failed, falling back to doing a full clone\n"
@@ -43,10 +43,18 @@ if [ -n "$(${GIT} ls-remote "${repo}" "${cset}" 2>&1)" ]; then
 fi
 if [ ${git_done} -eq 0 ]; then
     printf "Doing full clone\n"
-    ${GIT} clone ${verbose} --bare "${repo}" "${basename}"
+    ${GIT} clone ${verbose} "${repo}" "${basename}"
 fi
 
-GIT_DIR="${basename}" \
-${GIT} archive --prefix="${basename}/" -o "${output}.tmp" --format=tar "${cset}"
+# grab submodules, does not fail when not present
+(
+	cd ${basename}
+	git submodule init
+	git submodule update
+)
 
-gzip <"${output}.tmp" >"${output}"
+# clean git repository data
+rm -rf ${basename}/.git
+
+# create tarball
+tar -czf "${output}" ${basename}
