@@ -1,0 +1,19 @@
+#!/bin/sh
+
+{
+	KEYDIR=/etc/dropbear
+	# Check for the Dropbear RSA key
+	if [ ! -f $KEYDIR/dropbear_rsa_host_key ] ; then
+		echo "[`ktstamp -k`] Generating RSA key ..."
+		dropbearkey -t rsa -f $KEYDIR/dropbear_rsa_host_key > /dev/null
+	fi
+
+	# Check for the Dropbear DSS key
+	if [ ! -f $KEYDIR/dropbear_dss_host_key ] ; then
+		echo "[`ktstamp -k`] Generating DSA key ..."
+		dropbearkey -t dss -f $KEYDIR/dropbear_dss_host_key > /dev/null
+	fi
+	umask 077
+	echo "[`ktstamp -k`] start dropbear ..."
+	runc add dropbear -F
+} &

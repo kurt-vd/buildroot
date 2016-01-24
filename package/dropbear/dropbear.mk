@@ -59,6 +59,11 @@ define DROPBEAR_INSTALL_INIT_SYSTEMD
 		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/dropbear.service
 endef
 
+define DROPBEAR_INSTALL_INIT_RUND
+	$(INSTALL) -D -m 755 package/dropbear/15dropbear.rund \
+		$(TARGET_DIR)/etc/rc.local.d/15dropbear
+endef
+
 ifeq ($(BR2_USE_MMU),y)
 define DROPBEAR_INSTALL_INIT_SYSV
 	$(INSTALL) -D -m 755 package/dropbear/S50dropbear \
