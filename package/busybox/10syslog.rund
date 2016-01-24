@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Start logging when /var/log/messages is writable
+if touch /var/log/messages; then
+	echo "[`ktstamp -k`] start syslog"
+	runc add syslogd -n -b5
+	runc add klogd -n
+fi
+

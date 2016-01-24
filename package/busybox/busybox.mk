@@ -254,6 +254,13 @@ define BUSYBOX_INSTALL_INIT_SYSV
 	$(BUSYBOX_INSTALL_TELNET_SCRIPT)
 endef
 
+define BUSYBOX_INSTALL_INIT_RUND
+	if grep -q CONFIG_SYSLOGD=y $(@D)/.config; then \
+		$(INSTALL) -m 0755 -D package/busybox/10syslog.rund \
+			$(TARGET_DIR)/etc/rc.local.d/10syslog; \
+	else rm -f $(TARGET_DIR)/etc/rc.local.d/10syslog; fi
+endef
+
 # Checks to give errors that the user can understand
 # Must be before we call to kconfig-package
 ifeq ($(BR2_PACKAGE_BUSYBOX)$(BR_BUILDING),yy)
