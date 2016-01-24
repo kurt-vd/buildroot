@@ -349,6 +349,13 @@ config BR2_TARGET_GENERIC_REMOUNT_ROOTFS_RW
 
 endif # BR2_ROOTFS_SKELETON_DEFAULT
 
+config BR2_PERSISTENTFS
+	string "Block device to mount as persistentfs"
+	help
+	  Specify a block device to use as non-volatile storage.
+	  The system will mount it on /var/persistent
+	  Leave empty to disable persitentfs
+	  Typically /dev/mmcblk0p3, /dev/sda2, ...
 
 config BR2_SYSTEM_DHCP
 	string "Network interface to configure through DHCP"

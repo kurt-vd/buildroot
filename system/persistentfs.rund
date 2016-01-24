@@ -1,0 +1,45 @@
+#!/bin/sh
+
+PATH=/usr/sbin:/sbin:/usr/bin:/bin
+
+BLOCK=@@BLOCK@@
+MNTTMP=/tmp/persistent-$$
+
+mount_persistent() {
+	if ! [ -b "$BLOCK" ]; then
+		return 1
+	fi
+	if mount "$BLOCK" "$MNTTMP"; then
+		return 0
+	fi
+	echo "[persistentfs] Create new fs on $BLOCK"
+	if ! mkfs.ext3 -L persistentfs "$BLOCK"; then
+		echo "[persistentfs] mkfs.ext3 failed"
+		return 1
+	fi
+	if mount "$BLOCK" "$MNTTMP"; then
+		return 0
+	fi
+	echo "[persistentfs] $BLOCK failed"
+	return 1
+}
+
+mkdir "$MNTTMP"
+
+if ! mount_persistent; then
+	mount temp "$MNTTMP" -t tmpfs || exit 1
+fi
+
+DEVICE=`grep "$MNTTMP " /proc/mounts | sed -e "s, .*,,g"`
+echo "[persistentfs] using $DEVICE"
+
+rsync --ignore-existing -au /var/persistent/ "$MNTTMP/"
+mount --move "$MNTTMP" /var/persistent
+
+if [ -d /var/persistent/root ]; then
+	mount -o bind /var/persistent/root /root
+fi
+if [ -s /var/persistent/etc/hostname ]; then
+	hostname -F /var/persistent/etc/hostname
+	echo "[persistentfs] new hostname '`hostname`'"
+fi

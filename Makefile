@@ -419,6 +419,7 @@ endif
 
 include $(sort $(wildcard package/*/*.mk))
 
+include system/system.mk
 include boot/common.mk
 include linux/linux.mk
 include fs/common.mk
