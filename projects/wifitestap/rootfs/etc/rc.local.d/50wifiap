@@ -1,0 +1,12 @@
+#!/bin/sh
+
+{
+	# wait for wlan0
+	until ip link show wlan0 > /dev/null 2>&1; do sleep 1; done
+	echo "[`ktstamp -k`] wlan0: wifi access point"
+	ip addr add 192.168.137.1/24 dev wlan0
+	runc add hostapd /etc/hostapd-wifitest.conf
+	runc add dnsmasq -k
+	echo "[`ktstamp -k`] wlan0: networktest2 echo server"
+	runc add DETACH=0 networktest2 -e wlan0
+} &

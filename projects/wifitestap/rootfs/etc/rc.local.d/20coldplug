@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# indicate system is running
+echo "heartbeat" > /sys/class/leds/led0/trigger
