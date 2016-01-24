@@ -1,0 +1,2 @@
+root=/dev/mmcblk0p2 rootwait early_printk console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 dwc_otg.lpm_enable=0 loglevel=4
+

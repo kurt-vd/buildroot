@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo "[`ktstamp -k`] Start musicbox"
+
+NAME=`grep ^zeroconf_name /etc/mpd.conf | sed -e "s,^.* ,,g" -e "s,\",,g"`
+
+runc add mpd --no-daemon
+runc add ympd -w 80 -u nobody
+runc add shairport -a "$NAME" --port=5000
+runc add upmpdcli -f "$NAME" -l 0

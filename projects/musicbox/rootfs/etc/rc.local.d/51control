@@ -1,0 +1,29 @@
+#!/bin/sh
+
+echo "[`ktstamp -k`] Start music box"
+# todo: wpa_supplicant
+# todo: mpd + ...
+
+LED=/sys/class/leds/mcpm
+
+case "$1" in
+leds)
+	inputevent /dev/input/event0 | while read TIME CODE VALUE; do
+	case $CODE in
+	KEY_2)
+		echo timer > $LED/trigger
+		echo 100 > $LED/delay_on
+		echo 100 > $LED/delay_off
+		poweroff
+		;;
+	KEY_*)
+		echo $(( $VALUE * 255 )) > $LED/brightness
+		;;
+	esac
+	done
+	;;
+*)
+	runc add `readlink -f "$0"` leds
+	;;
+esac
+

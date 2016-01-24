@@ -1,0 +1,100 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2708";
+
+	fragment@0 {
+		target = <&i2c_arm>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			ds1307: ds1307@68 {
+				compatible = "maxim,ds1307";
+				reg = <0x68>;
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&audio>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@2 {
+		target-path = "/";
+		__overlay__ {
+			capkeys {
+				compatible = "gpio-keys";
+				#address-cells = <0>;
+				#size-cells = <0>;
+
+				/* all gpio's are now active low */
+				key1 {
+					gpios = <&gpio 24 1>;
+					linux,code = <2>; /* "1" */
+					wakeup-source;
+				};
+				key2 {
+					gpios = <&gpio 23 1>;
+					linux,code = <3>; /* "2" */
+				};
+				key3 {
+					gpios = <&gpio 22 1>;
+					linux,code = <4>;
+				};
+				key4 {
+					gpios = <&gpio 27 1>;
+					linux,code = <5>;
+				};
+				key5 {
+					gpios = <&gpio 17 1>;
+					linux,code = <6>;
+				};
+			};
+		};
+	};
+
+	fragment@3 {
+		target-path = "/";
+		__overlay__ {
+			mcpmleds {
+				/* The Mean Crafty Pi Monster main led */
+				compatible = "gpio-leds";
+
+				mcpm {
+					label = "mcpm";
+					gpios = <&gpio 4 0>;
+					linux,default-trigger = "none";
+				};
+			};
+		};
+	};
+	
+
+	fragment@4 {
+		target = <&gpio>;
+		__overlay__ {
+			capkeys_pins: capkeys_pins {
+				/* set pins as input */
+				brcm,pins = <24 23 22 27 17>;
+				brcm,function = <0 0 0 0 0>;
+			};
+			mcpmleds_pins: mcmpleds_pins {
+				/* set pins as input */
+				brcm,pins = <4>;
+				brcm,function = <1>;
+
+			};
+		};
+	};
+
+	__overrides__ {
+		ds1307 = <&ds1307>,"status";
+	};
+};

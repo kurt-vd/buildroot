@@ -1,0 +1,62 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2708";
+
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			explorerleds {
+				compatible = "gpio-leds";
+
+				blue {
+					label = "blue";
+					gpios = <&gpio 4 0>;
+					linux,default-trigger = "none";
+				};
+				yellow {
+					label = "yellow";
+					gpios = <&gpio 17 0>;
+					linux,default-trigger = "none";
+				};
+				green {
+					label = "red";
+					gpios = <&gpio 27 0>;
+					linux,default-trigger = "none";
+				};
+				red {
+					label = "green";
+					gpios = <&gpio 5 0>;
+					linux,default-trigger = "none";
+				};
+			};
+		};
+	};
+	
+	fragment@1 {
+		target = <&i2c_arm>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			cap11xx: cap1208@28 {
+				compatible = "microchip,cap1208";
+				reg = <0x28>;
+				status = "okay";
+				linux,keycodes = <6 7 8 9 2 3 4 5>;
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&gpio>;
+		__overlay__ {
+			explorerleds_pins: explorerleds_pins {
+				brcm,pins = <4 17 27 5>;
+				brcm,function = <1 1 1 1>; // out
+			};
+		};
+	};
+};
