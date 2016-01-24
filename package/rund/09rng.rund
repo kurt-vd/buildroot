@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# restore random seed (after persistenfs?)
+if [ -f /var/cache/random-seed ]; then 
+	echo "[`ktstamp -k`] Set random seed"
+	cat /var/cache/random-seed > /dev/urandom
+fi &

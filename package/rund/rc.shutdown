@@ -1,0 +1,50 @@
+#!/bin/sh
+
+PATH=/usr/sbin:/sbin:/usr/bin:/bin
+
+echo "[`ktstamp -k`] save state ..."
+
+dd if=/dev/urandom of=/var/cache/random-seed count=1 bs=512 2>/dev/null &
+
+# save clock
+if [ -c /dev/rtc0 ]; then
+	hwclock -w -l &
+fi
+
+if [ -x /opt/etc/rc.shutdown ]; then
+	echo "[`ktstamp -k`] $1 /opt ..."
+	/opt/etc/rc.shutdown "$@"
+fi
+
+wait
+
+echo "[`ktstamp -k`] stop services ..."
+
+# Stuff to do before rebooting
+runc remove "*"
+# kill interactive shells in this busybox version
+pkill -9 -- -sh
+runc -r0.25 -m2 removing
+
+# kill remaining services ?
+
+FILESYSTEMS=`grep -v nodev /proc/filesystems | xargs echo | sed -e "s/ /,/g"`
+FILESYSTEMS="$FILESYSTEMS jffs2 ubifs"
+echo [`ktstamp -k`] Unmount $FILESYSTEMS
+umount -n -a -r -t "$FILESYSTEMS"
+if ! mount -o remount,ro /; then
+	# maybe pid #1 has files open that were replaced/deleted
+	# exec itself to solve this
+	echo [`ktstamp -k`] exec rund to release rootfs
+	runc exec rund -noinit
+	echo [`ktstamp -k`] Remount root as read-only
+	if ! mount -o remount,ro /; then
+		echo [`ktstamp -k`] / did not remount cleanly
+	fi
+fi
+
+echo "[`ktstamp -k`] $1 system ..."
+
+echo "[`ktstamp -k`] bye!"
+
+sysreboot "$1"

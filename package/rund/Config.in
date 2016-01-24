@@ -1,0 +1,16 @@
+config BR2_PACKAGE_RUND
+	bool "rund init daemon"
+	help
+	  /sbin/init - parent of all processes
+
+if BR2_PACKAGE_RUND
+config BR2_PACKAGE_RUND_HALT
+	bool "install rund shutdown script"
+	default y
+	help
+	  The shutdown script provided by run is able to
+	  detect the running init system and act differently
+	  according that information.
+	  It can halt/poweroff/reboot rund, busybox init, sysvinit, systemd.
+
+endif
