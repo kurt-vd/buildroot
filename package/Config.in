@@ -1327,6 +1327,7 @@ if BR2_PACKAGE_BUSYBOX_SHOW_OTHERS
 	source "package/net-tools/Config.in"
 endif
 	source "package/network-manager/Config.in"
+	source "package/networktest/Config.in"
 	source "package/nfacct/Config.in"
 	source "package/nftables/Config.in"
 	source "package/nginx/Config.in"

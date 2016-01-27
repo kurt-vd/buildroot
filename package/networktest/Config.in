@@ -1,0 +1,8 @@
+config BR2_PACKAGE_NETWORKTEST
+	bool "networktest2"
+	help
+	  networktest2 is a client+server network test program.
+	  A client broadcasts UDP traffic onto the network.
+	  Any server replies the packet with a unicast, and the
+	  client then receives N replies on it packet.
+	  This can be used to test a network connection.
