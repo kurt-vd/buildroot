@@ -76,4 +76,13 @@ config BR2_PACKAGE_RPI_FIRMWARE_INSTALL_VCDBG
 comment "vcdbg needs an (e)glibc toolchain w/ C++"
 	depends on !BR2_TOOLCHAIN_USES_GLIBC || !BR2_INSTALL_LIBSTDCPP
 
+config BR2_PACKAGE_RPI_FIRMWARE_EXTRA_PATH
+	string "Extra path to take config files"
+	help
+	  Specify a (project specific) path where config.txt and cmdline.txt
+	  can be overruled. This can happen in 3 ways:
+	  * provide a new copy of the file
+	  * provide a patch file (named config.txt.patch)
+	  * provide a sed script (named config.txt.sed).
+
 endif # BR2_PACKAGE_RPI_FIRMWARE

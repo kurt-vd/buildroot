@@ -57,3 +57,8 @@ endef
 
 $(eval $(generic-package))
 $(eval $(host-generic-package))
+
+ifneq ($(BR2_PACKAGE_RPI_FIRMWARE),)
+	BR2_ROOTFS_POST_BUILD_SCRIPT += package/rpi-firmware/rpi-post-build.sh
+	BR2_ROOTFS_POST_IMAGE_SCRIPT += package/rpi-firmware/rpi-post-image.sh
+endif
