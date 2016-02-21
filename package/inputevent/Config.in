@@ -1,0 +1,6 @@
+config BR2_PACKAGE_INPUTEVENT
+	bool "inputevent"
+	help
+	  inputevent is a simple program that traces input events.
+	  When piped to a another program or script, you get similar
+	  functionality as input-event-daemon.
