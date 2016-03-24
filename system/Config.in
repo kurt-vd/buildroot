@@ -267,7 +267,13 @@ config BR2_SYSTEM_BIN_SH_ZSH
 	depends on BR2_PACKAGE_BUSYBOX_SHOW_OTHERS
 	select BR2_PACKAGE_ZSH
 
-comment "bash, dash, zsh need BR2_PACKAGE_BUSYBOX_SHOW_OTHERS"
+config BR2_SYSTEM_BIN_SH_MKSH
+	bool "mksh"
+	depends on BR2_USE_MMU # mksh
+	depends on BR2_PACKAGE_BUSYBOX_SHOW_OTHERS
+	select BR2_PACKAGE_MKSH
+
+comment "bash, dash, zsh, mksh need BR2_PACKAGE_BUSYBOX_SHOW_OTHERS"
 	depends on !BR2_PACKAGE_BUSYBOX_SHOW_OTHERS && BR2_PACKAGE_BUSYBOX
 
 config BR2_SYSTEM_BIN_SH_NONE
@@ -281,6 +287,7 @@ config BR2_SYSTEM_BIN_SH
 	default "bash"    if BR2_SYSTEM_BIN_SH_BASH
 	default "dash"    if BR2_SYSTEM_BIN_SH_DASH
 	default "zsh"     if BR2_SYSTEM_BIN_SH_ZSH
+	default "mksh"    if BR2_SYSTEM_BIN_SH_MKSH
 
 menuconfig BR2_TARGET_GENERIC_GETTY
 	bool "Run a getty (login prompt) after boot"
