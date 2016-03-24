@@ -36,27 +36,39 @@
 
 				/* all gpio's are now active low */
 				key1 {
-					gpios = <&gpio 24 1>;
+					gpios = <&gpio 25 1>;
 					linux,code = <2>; /* "1" */
 					wakeup-source;
 				};
 				key2 {
-					gpios = <&gpio 23 1>;
+					gpios = <&gpio 24 1>;
 					linux,code = <3>; /* "2" */
 				};
 				key3 {
-					gpios = <&gpio 22 1>;
+					gpios = <&gpio 23 1>;
 					linux,code = <4>;
 				};
 				key4 {
-					gpios = <&gpio 27 1>;
+					gpios = <&gpio 22 1>;
 					linux,code = <5>;
 				};
 				key5 {
-					gpios = <&gpio 17 1>;
+					gpios = <&gpio 27 1>;
 					linux,code = <6>;
 				};
 			};
+			/*
+			switches {
+				compatible = "gpio-keys";
+				#address-cells = <0>;
+				#size-cells = <0>;
+
+				sysrq {
+					gpios = <&gpio 17 1>;
+					linux,code = <99>;
+				};
+			};
+			*/
 		};
 	};
 
@@ -69,8 +81,13 @@
 
 				mcpm {
 					label = "mcpm";
-					gpios = <&gpio 4 0>;
+					gpios = <&gpio 18 0>;
 					linux,default-trigger = "none";
+				};
+				amplifier {
+					label = "amplifier";
+					gpios = <&gpio 5 1>;
+					linux,default-state = "off";
 				};
 			};
 		};
@@ -82,19 +99,32 @@
 		__overlay__ {
 			capkeys_pins: capkeys_pins {
 				/* set pins as input */
-				brcm,pins = <24 23 22 27 17>;
+				brcm,pins = <25 24 23 22 27>;
 				brcm,function = <0 0 0 0 0>;
 			};
+			/*
+			switches_pins: switches_pins {
+				brcm,pins = <17>;
+				brcm,function = <0>;
+			};
+			*/
 			mcpmleds_pins: mcmpleds_pins {
 				/* set pins as input */
-				brcm,pins = <4>;
-				brcm,function = <1>;
-
+				brcm,pins = <18 5>;
+				brcm,function = <1 1>;
 			};
 		};
 	};
 
+	fragment@5 {
+		target = <&fb>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
 	__overrides__ {
-		ds1307 = <&ds1307>,"status";
+		hdmi = <&fb>,"status";
+
 	};
 };

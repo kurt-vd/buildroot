@@ -1,10 +1,42 @@
 #!/bin/sh
 
-echo "[`ktstamp -k`] Start musicbox"
+NAME=`hostname`
+AMP=/sys/class/leds/amplifier
+sed -i -e "s,^zeroconf_name.*$,zeroconf_name \"$NAME\",g" /etc/mpd.conf
 
-NAME=`grep ^zeroconf_name /etc/mpd.conf | sed -e "s,^.* ,,g" -e "s,\",,g"`
+if [ -f /srv/etc/config ]; then
+	. /srv/etc/config
+fi
 
-runc add mpd --no-daemon
-runc add ympd -w 80 -u nobody
-runc add shairport -a "$NAME" --port=5000
-runc add upmpdcli -f "$NAME" -l 0
+if ! [ -d /srv/music ]; then
+	echo "[`ktstamp -k`] mount music"
+	# btrfs
+	#mount /dev/mmcblk0p2 /srv -osubvol=+dat,ro,discard,ssd_spread
+	# regular
+	mount /dev/mmcblk0p2 /srv -oro
+fi
+
+{
+	echo "[`ktstamp -k`] Start musicbox $NAME"
+	# play test sound, mainly for initializing the alsa
+	# output. This make bcm2835-pcm work properly.
+
+	#echo $TESTENABLE > $AMP/brightness
+	aplay /etc/test.wav
+	#echo 0 > $AMP/brightness
+
+	mkdir -p /var/lib/mpd
+	mkdir -p /var/lib/mpd/playlists
+	chown mpd:mpd -R /var/lib/mpd
+
+	runc add mpd --no-daemon
+	runc add ympd -w 80 -u nobody
+
+	sockwait /var/run/avahi-daemon/socket
+
+	echo "[`ktstamp -k`] Start shairport $NAME"
+	runc add shairport-sync -a "$NAME" --port=5000
+
+	echo "[`ktstamp -k`] Start uPNP $NAME"
+	runc add upmpdcli -f "$NAME" -l 0
+} &

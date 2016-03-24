@@ -14,10 +14,11 @@ kernel=zImage
 disable_overscan=1
 
 # How much memory in MB to assign to the GPU on Pi models having
+gpu_mem=32
 # 256, 512 or 1024 MB total memory
-gpu_mem_256=100
-gpu_mem_512=100
-gpu_mem_1024=100
+#gpu_mem_256=100
+#gpu_mem_512=100
+#gpu_mem_1024=100
 
 # enable i2c busses
 dtparam=i2c1=on

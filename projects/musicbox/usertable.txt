@@ -1,0 +1,5 @@
+dbus 60 dbus 60 * - - - -
+avahi 61 avahi 61 * - - - -
+- - input 62 * - - - -
+mpd 63 mpd 63 * /var/lib/mpd /bin/false - "Music Player Daemon"
+upmpdcli 64 upmpdcli 64 * - - - Upmpdcli MPD UPnP Renderer Front-End

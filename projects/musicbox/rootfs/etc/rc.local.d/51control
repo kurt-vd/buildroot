@@ -1,29 +1,90 @@
 #!/bin/sh
+#!/bin/sh
 
-echo "[`ktstamp -k`] Start music box"
-# todo: wpa_supplicant
-# todo: mpd + ...
+echo "[`ktstamp -k`] Start control"
 
 LED=/sys/class/leds/mcpm
+AMP=/sys/class/leds/amplifier
 
 case "$1" in
-leds)
-	inputevent /dev/input/event0 | while read TIME CODE VALUE; do
-	case $CODE in
-	KEY_2)
-		echo timer > $LED/trigger
-		echo 100 > $LED/delay_on
-		echo 100 > $LED/delay_off
-		poweroff
+ctrl)
+        while read TIME CODE VALUE; do
+	if timeofday 6h45 19h15; then
+		NUM=1
+		# only process keyup
+		case "$CODE:$VALUE" in
+		KEY_1:0)
+			mplay $NUM playlist rightrear
+			;;
+		KEY_2:0)
+			mplay $NUM playlist rightfront
+			;;
+		KEY_3:0)
+			mplay $NUM playlist middle
+			;;
+		KEY_4:0)
+			mplay $NUM playlist leftfront
+			;;
+		KEY_5:0)
+			mplay $NUM playlist leftrear
+			;;
+		*:long)
+			mpc -q clear
+			# leave qeueue empty
+			;;
+		esac
+	else
+		NUM=1
+		case "$CODE:$VALUE" in
+		KEY_1:1|KEY_2:1)
+			mplay $NUM playlist nightright
+			;;
+		KEY_3:1)
+			mpc -q clear
+			# leave qeueue empty
+			;;
+		KEY_4:1|KEY_5:1)
+			mplay $NUM playlist nightleft
+			;;
+		esac
+	fi
+        done
+        ;;
+amp)
+	# emit MPD's play state to a (green) led
+
+	echo none > $AMP/trigger
+	echo oneshot > $LED/trigger
+	echo 255 > $LED/brightness
+	sockwait /run/mpd.sock
+	mpc volume 92
+	mpc consume on
+	mpdstate | while read PROP VALUE; do
+	case "$PROP:$VALUE" in
+	state:play)
+		if timeofday 8h00 19h00; then
+			echo timer > $LED/trigger
+			echo 150 > $LED/delay_on
+			echo 150 > $LED/delay_off
+		else
+			echo none > $LED/trigger
+			echo 255 > $LED/brightness
+		fi
+		echo 255 > $AMP/brightness
 		;;
-	KEY_*)
-		echo $(( $VALUE * 255 )) > $LED/brightness
+	state:*)
+		echo none > $LED/trigger
+		echo 0 > $LED/brightness
+		echo 0 > $AMP/brightness
 		;;
 	esac
 	done
 	;;
 *)
-	runc add `readlink -f "$0"` leds
+	echo heartbeat > /sys/class/leds/led0/trigger
+	echo 0 > /sys/class/leds/led1/brightness
+	runc add inputevent --long=0.35 /dev/input/event0 `readlink -f "$0"` ctrl
+	runc add `readlink -f "$0"` amp
 	;;
 esac
 

@@ -3,6 +3,6 @@
 {
 	until ip link show wlan0 > /dev/null 2>&1; do sleep 1; done
 	echo "[`ktstamp -k`] Start WIFI"
-	runc add wpa_supplicant -i wlan0 -c /etc/wpa_supplicant.conf
-	runc add ifplugd -i wlan0 -u1 -d3 --no-daemon --ignore-fail
-}
+	runc add wpa_supplicant -i wlan0 -c /etc/wpa_supplicant.conf -D nl80211,wext
+	runc add ifplugd -i wlan0 -u1 -d3 --no-daemon --ignore-fail --run /etc/on-ifplugd
+} &

@@ -1,0 +1,15 @@
+#!/bin/sh
+
+
+NUM="$1"
+shift
+
+mpc -q clear
+mpc -q -f %file% "$@" | while read LINE; do
+	echo "$RANDOM $LINE"
+done | sort -n | sed -e "s,^[^ ]* ,,g" | head -n "$NUM" | while read LINE; do
+	#echo mpc add "$LINE" >&2
+	mpc -q add "$LINE"
+done
+mpc -q play
+
