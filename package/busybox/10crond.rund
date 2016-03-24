@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Start crond when /var/spool/cron is present
+if [ -d /var/spool/cron ]; then
+	echo "[`ktstamp -k`] start cron"
+	runc add crond -f
+fi
+
