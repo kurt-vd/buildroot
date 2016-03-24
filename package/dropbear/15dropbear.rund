@@ -15,5 +15,5 @@
 	fi
 	umask 077
 	echo "[`ktstamp -k`] start dropbear ..."
-	runc add dropbear -F
+	runc add dropbear -B -F
 } &
