@@ -206,6 +206,11 @@ define AVAHI_INSTALL_INIT_SYSTEMD
 		$(TARGET_DIR)/usr/lib/tmpfiles.d/avahi.conf
 endef
 
+define AVAHI_INSTALL_INIT_RUND
+	$(INSTALL) -D -m 755 package/avahi/16avahi.rund \
+		$(TARGET_DIR)/etc/rc.local.d/16avahi
+endef
+
 define AVAHI_INSTALL_DAEMON_INIT_SYSV
 	$(INSTALL) -D -m 0755 package/avahi/S50avahi-daemon $(TARGET_DIR)/etc/init.d/S50avahi-daemon
 endef

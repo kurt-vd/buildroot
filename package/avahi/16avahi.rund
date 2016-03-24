@@ -1,0 +1,8 @@
+#!/bin/sh
+
+{
+	sockwait /var/run/dbus/system_bus_socket
+
+	echo "[`ktstamp -k`] Start AVAHI ..."
+	runc add avahi-daemon --no-proc-title -s &
+} &
