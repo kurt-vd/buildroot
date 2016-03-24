@@ -260,4 +260,8 @@ define MPD_INSTALL_INIT_SYSV
 		$(TARGET_DIR)/etc/init.d/S95mpd
 endef
 
+define MPD_USERS
+	mpd -1 mpd -1 * /var/lib/mpd /bin/false - "Music Player Daemon"
+endef
+
 $(eval $(autotools-package))
