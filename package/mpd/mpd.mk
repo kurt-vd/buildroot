@@ -12,6 +12,9 @@ MPD_DEPENDENCIES = host-pkgconf boost
 MPD_LICENSE = GPLv2+
 MPD_LICENSE_FILES = COPYING
 
+# mp4v2 support need reconf
+MPD_AUTORECONF=YES
+
 # Some options need an explicit --disable or --enable
 
 # Zeroconf support depends on libdns_sd from avahi.
@@ -146,6 +149,13 @@ MPD_DEPENDENCIES += libid3tag libmad
 MPD_CONF_OPTS += --enable-mad
 else
 MPD_CONF_OPTS += --disable-mad
+endif
+
+ifeq ($(BR2_PACKAGE_MPD_FAADMP4V2),y)
+MPD_DEPENDENCIES += mp4v2
+MPD_CONF_OPTS += --enable-mp4v2
+else
+MPD_CONF_OPTS += --disable-mp4v2
 endif
 
 ifeq ($(BR2_PACKAGE_MPD_MPG123),y)

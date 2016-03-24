@@ -106,6 +106,13 @@ config BR2_PACKAGE_MPD_MAD
 	  Enable mad input support.
 	  Select this if you want to play back MP3 files.
 
+config BR2_PACKAGE_MPD_FAADMP4V2
+	bool "faad2"
+	select BR2_PACKAGE_MP4V2
+	help
+	  Enable mp4+faad2 input support.
+	  Select this if you want to play back AAC files.
+
 config BR2_PACKAGE_MPD_MPG123
 	bool "mpg123"
 	select BR2_PACKAGE_LIBID3TAG
