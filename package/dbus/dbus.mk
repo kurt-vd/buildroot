@@ -103,6 +103,11 @@ define DBUS_INSTALL_INIT_SYSTEMD
 	ln -sf /etc/machine-id $(TARGET_DIR)/var/lib/dbus/machine-id
 endef
 
+define DBUS_INSTALL_INIT_RUND
+	$(INSTALL) -D -m 755 package/dbus/15dbus.rund \
+		$(TARGET_DIR)/etc/rc.local.d/15dbus
+endef
+
 HOST_DBUS_DEPENDENCIES = host-pkgconf host-expat
 HOST_DBUS_CONF_OPTS = \
 	--with-dbus-user=dbus \
