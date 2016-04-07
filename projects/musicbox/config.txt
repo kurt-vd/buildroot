@@ -28,6 +28,7 @@ dtparam=uart0=on
 
 #dtdebug=on
 dtoverlay=musicbox
+dtparam=audio=on
 # multiple overlays are allowed
 #dtoverlay=explorer
 
