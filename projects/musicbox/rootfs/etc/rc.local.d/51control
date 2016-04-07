@@ -57,7 +57,7 @@ amp)
 	echo oneshot > $LED/trigger
 	echo 255 > $LED/brightness
 	sockwait /run/mpd.sock
-	mpc volume 92
+	mpc volume 50
 	mpc consume on
 	mpdstate | while read PROP VALUE; do
 	case "$PROP:$VALUE" in

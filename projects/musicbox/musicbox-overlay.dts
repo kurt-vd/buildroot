@@ -74,7 +74,7 @@
 
 				mcpm {
 					label = "mcpm";
-					gpios = <&gpio 18 0>;
+					gpios = <&gpio 12 0>;
 					linux,default-trigger = "none";
 				};
 				amplifier {
@@ -101,9 +101,9 @@
 				brcm,function = <0>;
 			};
 			*/
-			mcpmleds_pins: mcmpleds_pins {
-				/* set pins as input */
-				brcm,pins = <18 5>;
+			mcpmleds_pins: mcpmleds_pins {
+				/* set pins as output */
+				brcm,pins = <12 5>;
 				brcm,function = <1 1>;
 			};
 		};
