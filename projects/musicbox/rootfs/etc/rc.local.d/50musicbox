@@ -22,7 +22,7 @@ fi
 	# output. This make bcm2835-pcm work properly.
 
 	#echo $TESTENABLE > $AMP/brightness
-	aplay /etc/test.wav
+	#aplay /etc/test.wav
 	#echo 0 > $AMP/brightness
 
 	mkdir -p /var/lib/mpd
