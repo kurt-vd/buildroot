@@ -3,5 +3,5 @@
 # Mosquitto message broker
 {
 	echo "[`ktstamp -k`] Start Mosquitto ..."
-	runc add mosquitto
+	runc add mosquitto -c /etc/mosquitto/mosquitto.conf
 }
