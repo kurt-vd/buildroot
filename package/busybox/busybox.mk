@@ -255,6 +255,10 @@ define BUSYBOX_INSTALL_INIT_RUND
 		$(INSTALL) -m 0755 -D package/busybox/10crond.rund \
 			$(TARGET_DIR)/etc/rc.local.d/10crond; \
 	else rm -f $(TARGET_DIR)/etc/rc.local.d/10crond; fi
+	if grep -q CONFIG_HTTPD=y $(@D)/.config; then \
+		$(INSTALL) -m 0755 -D package/busybox/25httpd.rund \
+			$(TARGET_DIR)/etc/rc.local.d/25httpd; \
+	else rm -f $(TARGET_DIR)/etc/rc.local.d/25httpd; fi
 endef
 
 # Checks to give errors that the user can understand
