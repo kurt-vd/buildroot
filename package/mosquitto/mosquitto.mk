@@ -91,6 +91,12 @@ define MOSQUITTO_INSTALL_INIT_SYSTEMD
 		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/mosquitto.service
 endef
 
+define MOSQUITTO_INSTALL_INIT_RUND
+	for FILE in package/mosquitto/*.rund; do \
+		$(INSTALL) -v -D -m 755 $$FILE $(TARGET_DIR)/etc/rc.local.d/`basename "$$FILE" .rund`; \
+	done
+endef
+
 define MOSQUITTO_USERS
 	mosquitto -1 nogroup -1 * - - - Mosquitto user
 endef
