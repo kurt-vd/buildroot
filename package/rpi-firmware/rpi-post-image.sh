@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 IMGDIR="$1"
 EXTRADIR=`grep "^BR2_PACKAGE_RPI_FIRMWARE_EXTRA_PATH=" $BR2_CONFIG | sed -e "s,^.*=,,g" -e "s,\",,g"`
