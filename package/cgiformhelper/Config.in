@@ -1,0 +1,7 @@
+config BR2_PACKAGE_CGIFORMHELPER
+	bool "cgiformhelper"
+	help
+	  cgiformhelper is a program that parses CGI POST data
+	  in a "1 file per variable" way.
+	  Accessing CGI data from shell scripts becomes as easy
+	  as accessing files.
