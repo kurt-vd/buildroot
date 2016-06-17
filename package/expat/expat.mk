@@ -15,5 +15,6 @@ HOST_EXPAT_DEPENDENCIES = host-pkgconf
 EXPAT_LICENSE = MIT
 EXPAT_LICENSE_FILES = COPYING
 
+EXPAT_AUTORECONF=YES
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))
