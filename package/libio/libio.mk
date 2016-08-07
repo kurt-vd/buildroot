@@ -4,10 +4,8 @@
 #
 #############################################################
 LIBIO_VERSION:=v20160411
-#LIBIO_GIT:=git://github.com/kurt-vd/libio
-LIBIO_GIT:=git://www.vandijck-laurijssen.be/libio
+LIBIO_GIT:=git://github.com/kurt-vd/libio
 #LIBIO_SOURCE:=libio-$(LIBIO_VERSION).tgz
-#LIBIO_SITE:=http://www.vandijck-laurijssen.be/mirror
 LIBIO_DIR:=$(BUILD_DIR)/libio
 LIBIO_BINARY:=io
 LIBIO_TARGET_BINARY:=usr/bin/io
