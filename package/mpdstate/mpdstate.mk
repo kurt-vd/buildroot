@@ -11,7 +11,7 @@ MPDSTATE_LICENSE = GPLv3
 MPDSTATE_LICENSE_FILES = LICENSE
 
 define MPDSTATE_CONFIGURE_CMDS
-	echo "PREFIX=/" > $(@D)/config.mk
+	echo "PREFIX=/usr" > $(@D)/config.mk
 	echo "CFLAGS=$(TARGET_CFLAGS)" >> $(@D)/config.mk
 	echo "CPPFLAGS=$(TARGET_CPPFLAGS)" >> $(@D)/config.mk
 	echo "CXXFLAGS=$(TARGET_CXXFLAGS)" >> $(@D)/config.mk
@@ -21,6 +21,7 @@ define MPDSTATE_CONFIGURE_CMDS
 	echo "CXX=$(TARGET_CXX)" >> $(@D)/config.mk
 	echo "LD=$(TARGET_LD)" >> $(@D)/config.mk
 	echo "AS=$(TARGET_AS)" >> $(@D)/config.mk
+	echo "LOCALVERSION=$(RUND_VERSION)" >> $(@D)/config.mk
 
 	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) clean
 endef
