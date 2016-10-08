@@ -4,14 +4,14 @@
 #
 ################################################################################
 
-INPUTEVENT_VERSION = r7
+INPUTEVENT_VERSION = r11
 INPUTEVENT_SITE = git://github.com/kurt-vd/inputevent.git
 #INPUTEVENT_SITE = $(call github,kurt-vd,rund,$(INPUTEVENT_VERSION))
 INPUTEVENT_LICENSE = GPLv3
 INPUTEVENT_LICENSE_FILES = LICENSE
 
 define INPUTEVENT_CONFIGURE_CMDS
-	echo "PREFIX=/" > $(@D)/config.mk
+	echo "PREFIX=/usr" > $(@D)/config.mk
 	echo "CFLAGS=$(TARGET_CFLAGS)" >> $(@D)/config.mk
 	echo "CPPFLAGS=-D_GNU_SOURCE $(TARGET_CPPFLAGS)" >> $(@D)/config.mk
 	echo "CXXFLAGS=$(TARGET_CXXFLAGS)" >> $(@D)/config.mk
@@ -21,6 +21,7 @@ define INPUTEVENT_CONFIGURE_CMDS
 	echo "CXX=$(TARGET_CXX)" >> $(@D)/config.mk
 	echo "LD=$(TARGET_LD)" >> $(@D)/config.mk
 	echo "AS=$(TARGET_AS)" >> $(@D)/config.mk
+	echo "LOCALVERSION=$(RUND_VERSION)" >> $(@D)/config.mk
 
 	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) clean
 endef
