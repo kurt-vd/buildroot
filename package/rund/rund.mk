@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-RUND_VERSION = 8e82634d4a05426b2380f59ceba491187e1a71e5
+RUND_VERSION = r11
 RUND_SITE = $(call github,kurt-vd,rund,$(RUND_VERSION))
 RUND_LICENSE = GPLv3
 RUND_LICENSE_FILES = LICENSE
@@ -20,6 +20,7 @@ define RUND_CONFIGURE_CMDS
 	echo "CXX=$(TARGET_CXX)" >> $(@D)/config.mk
 	echo "LD=$(TARGET_LD)" >> $(@D)/config.mk
 	echo "AS=$(TARGET_AS)" >> $(@D)/config.mk
+	echo "LOCALVERSION=$(RUND_VERSION)" >> $(@D)/config.mk
 
 	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) clean
 endef
