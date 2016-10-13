@@ -101,4 +101,8 @@ define DROPBEAR_INSTALL_TARGET_CMDS
 	ln -snf /var/run/dropbear $(TARGET_DIR)/etc/dropbear
 endef
 
+ifeq ($(BR2_PACKAGE_DROPBEAR),y)
+BR2_PERSISTENTFSDIRS_AUTO += /etc/dropbear
+endif
+
 $(eval $(autotools-package))

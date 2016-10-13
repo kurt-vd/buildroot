@@ -67,6 +67,10 @@ if [ -c /dev/rtc0 ]; then
 	hwclock -s -l &
 fi
 
+if [ -x /etc/persistentfs.sh ]; then
+	/etc/persistentfs.sh
+fi
+
 echo "[`ktstamp -k`] start services ..."
 
 # terminal

@@ -129,5 +129,9 @@ HOST_DBUS_GEN_INTROSPECT = \
 
 HOST_DBUS_POST_INSTALL_HOOKS += HOST_DBUS_GEN_INTROSPECT
 
+ifeq ($(BR2_PACKAGE_DBUS),y)
+BR2_PERSISTENTFSDIRS_AUTO += /etc/machine-id
+endif
+
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))
