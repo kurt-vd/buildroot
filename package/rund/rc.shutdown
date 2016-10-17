@@ -29,7 +29,7 @@ runc -r0.25 -m2 removing
 # kill remaining services ?
 
 FILESYSTEMS=`grep -v nodev /proc/filesystems | xargs echo | sed -e "s/ /,/g"`
-FILESYSTEMS="$FILESYSTEMS jffs2 ubifs"
+FILESYSTEMS="$FILESYSTEMS,jffs2,ubifs"
 echo [`ktstamp -k`] Unmount $FILESYSTEMS
 umount -n -a -r -t "$FILESYSTEMS"
 if ! mount -o remount,ro /; then
@@ -47,4 +47,5 @@ echo "[`ktstamp -k`] $1 system ..."
 
 echo "[`ktstamp -k`] bye!"
 
+sysreboot cadhard
 sysreboot "$1"

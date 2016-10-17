@@ -63,7 +63,7 @@ define RUND_INSTALL_TARGET_CMDS
 	$(INSTALL) -m 755 package/rund/rc.shutdown $(TARGET_DIR)/etc/rc.shutdown
 	$(INSTALL) -d $(TARGET_DIR)/etc/rc.local.d
 	# start getty
-	if [ $(BR2_TARGET_GENERIC_GETTY) = "y" ]; then \
+	if [ "$(BR2_TARGET_GENERIC_GETTY)" = "y" ]; then \
 		sed -i $(TARGET_DIR)/etc/rc.init \
 		-e "s,ttyS0,$(BR2_TARGET_GENERIC_GETTY_PORT),g" \
 		-e "s,115200,$(BR2_TARGET_GENERIC_GETTY_BAUDRATE),g" \
@@ -75,6 +75,10 @@ define RUND_INSTALL_TARGET_CMDS
 		-e "/## DEVICE MANAGER START/,/## $(DEVMAN) START/ d" \
 		-e "/## $(DEVMAN) DONE/,/## DEVICE MANAGER DONE/ d" \
 		-e "/## DEVICE MANAGER START/,/## DEVICE MANAGER DONE/ d"
+	if [ "$(BR2_TARGET_GENERIC_REMOUNT_RW)" != "y" ]; then \
+		sed -i $(TARGET_DIR)/etc/rc.init \
+		-e "s/^\(.*remount,rw.*\)/#\1/g"; \
+	fi
 endef
 
 $(eval $(generic-package))

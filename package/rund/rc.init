@@ -9,34 +9,51 @@ PATH=/usr/sbin:/sbin:/usr/bin:/bin
 
 echo "[`ktstamp -k`] start system ..."
 # export PATH to rund
-runc env PATH=$PATH
+runc env PATH="$PATH"
+if [ -f /etc/environment ]; then
+	. /etc/environment
+	# push environment into rund
+	sed -e "/^#/d" -e "/^$/d" /etc/environment | xargs -L1 -d\\n runc env
+fi
 
-# mount filesystems
-mount -tproc proc /proc
-mount -tsysfs sys /sys
-mount -ttmpfs tmp /tmp
-mount -ttmpfs run /run
+# set reboot behaviour
+sysreboot cadsoft
+
+# mount necessary filesystems
+mount -n -tproc proc /proc
+mount -n -tsysfs sys /sys
+mount -n -ttmpfs tmp /tmp
+mount -n -ttmpfs run /run
+chmod a+w,+t /tmp
+chmod a+w,+t /run
 
 # start device manager
+DEVFS=`df -T /dev 2> /dev/null | tail -n1 | { read DEV TYPE REST; echo $TYPE; }`
+if [ -z "$DEVFS" ]; then
+	# DF does not find mountpoint for rootfs
+	DEVFS=rootfs
+fi
 ## DEVICE MANAGER START
 ## fdev START
 echo "" > /proc/sys/kernel/hotplug
-mount -ttmpfs dev /dev
-mknod /dev/console c 5 1
-mknod /dev/null c 1 3
-mknod /dev/zero c 1 5
+if [ "$DEVFS" != tmpfs -a "$DEVFS" != devtmpfs -a "$DEVFS" != rootfs ]; then
+	mount -n -ttmpfs dev /dev
+	mknod /dev/console c 5 1
+	mknod /dev/null c 1 3
+	mknod /dev/zero c 1 5
+fi
 runc add DETACH=0 fdev -b --wait=0
 sockwait -r0.1 -f /dev/.fdev.coldplugged &
 ## fdev DONE
 ## devtmpfs START
-if ! mount | grep -q " /dev "; then
-	mount -tdevtmpfs dev /dev
+if [ $DEVFS != devtmpfs ]; then
+	mount -n -tdevtmpfs dev /dev
 fi
 ## devtmpfs DONE
 ## udev START
 echo "" > /proc/sys/kernel/hotplug
-if ! mount | grep -q " /dev "; then
-	mount -tdevtmpfs dev /dev
+if [ $DEVFS != devtmpfs ]; then
+	mount -n -tdevtmpfs dev /dev
 fi
 # code from slackware rc.udev
 udevd --daemon
@@ -46,10 +63,19 @@ udevadm settle --timeout=120 &
 ## udev DONE
 ## DEVICE MANAGER DONE
 
+# prepare /dev/shm
+# /dev is always a TMPFS like filesystem
+mkdir -p /dev/shm &
+
+# prepare /dev/pts
 mkdir -p /dev/pts
-mount -tdevpts devpts /dev/pts
-# mount tmpfs for media mount points
-mount -ttmpfs nodev /media
+mount -n -tdevpts devpts /dev/pts
+
+# if /dev was a rootfs type, then /media is on rootfs too
+if [ -d /media -a $DEVFS != rootfs ]; then
+	# mount tmpfs for media mount points
+	mount -n -ttmpfs nodev /media
+fi
 
 ip link set lo up
 #ip addr add 127.0.0.1/8 dev lo
@@ -61,19 +87,25 @@ for WDT in /dev/watchdog?; do runc watchdog add $WDT 1; done
 
 echo "[`ktstamp -k`] restore state ..."
 
+# remount /root read-write
+# This will be commented by buildroot
+# when BR2_TARGET_GENERIC_REMOUNT_RW is not set
+mount -n /root -o remount,rw
+
 # hardware clock
 # not all systems come with an RTC ...
 if [ -c /dev/rtc0 ]; then
 	hwclock -s -l &
 fi
 
+# be warned, system time may not be good yet at this point
+# you can't guarantee that /dev/rtc0 had a good battery ...
 if [ -x /etc/persistentfs.sh ]; then
 	/etc/persistentfs.sh
 fi
 
-echo "[`ktstamp -k`] start services ..."
-
-# terminal
+# READY
+echo "[`ktstamp -k`] Start services ..."
 #runc add agetty -i -a root -L ttyS0 115200 vt100
 runc add getty ttyS0 115200 vt100
 
