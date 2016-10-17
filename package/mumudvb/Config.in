@@ -1,0 +1,36 @@
+config BR2_PACKAGE_MUMUDVB
+	bool "MuMuDVB"
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	select BR2_PACKAGE_LIBICONV if !BR2_ENABLE_LOCALE
+	help
+	
+	  DVBlast is a simple and powerful MPEG-2/TS demux and
+	  streaming application.
+
+	  http://www.videolan.org/projects/dvblast.html
+
+	  MuMuDVB (Multi Multicast DVB) is a program that
+	  redistributes streams from DVB or ATSC (Digital Television)
+	  on a network (also called IPTV)
+	  using multicasting or HTTP unicast.
+	  It supports satellite, terrestrial and cable TV, in clear or
+	  scrambled channels and run on PC as well as several embedded
+	  platforms.
+	  It is intended to multicast (the stream is sent
+	  once and the network equipments split the data for the
+	  different clients) a whole DVB transponder
+	  (set of channels sent on the same carrier frequency)
+	  by assigning each channel a different multicast group.
+	  It detects the different services present as well as their
+	  important parameters for streaming, rewrite the main
+	  DVB tables to show clients only the right stream
+	  in each group. 
+
+	  History : MuMuDVB is originally a modification of dvbstream
+	  that http://www.crans.org[cr@ns] made to stream TV
+	  in a few hundred rooms.
+
+	  http://mumumdvb.braice.net
+
+comment 'mumudvb needs a toolchain w/ threads'
+	depends on !BR2_TOOLCHAIN_HAS_THREADS

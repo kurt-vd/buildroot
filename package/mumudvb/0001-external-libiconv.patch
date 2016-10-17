@@ -1,0 +1,20 @@
+commit b6cad9d5662df1e838978a9dd43a0beec8cf693b
+Author: Kurt Van Dijck <dev.kurt@vandijck-laurijssen.be>
+Date:   Fri Oct 14 11:45:23 2016
+
+    iconv: Make autotools work with external libiconv
+    
+    Signed-off-by: Kurt Van Dijck <dev.kurt@vandijck-laurijssen.be>
+
+diff --git a/configure.ac b/configure.ac
+index 155e096..2e1c1f6 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -25,6 +25,7 @@ dnl
+ dnl Iconv stuff
+ dnl
+ AM_ICONV
++LIBS="$LIBICONV $LIBS"
+ 
+ 
+ AC_CHECK_LIB([dvbapi], [dvbdemux_set_section_filter])
