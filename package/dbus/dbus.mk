@@ -83,6 +83,13 @@ endef
 
 DBUS_POST_BUILD_HOOKS += DBUS_REMOVE_VAR_LIB_DBUS
 
+# create an empty /etc/machine-id
+define DBUS_TOUCH_MACHINE_ID
+	rm -rf $(TARGET_DIR)/etc/machine-id
+endef
+
+DBUS_POST_BUILD_HOOKS += DBUS_TOUCH_MACHINE_ID
+
 define DBUS_REMOVE_DEVFILES
 	rm -rf $(TARGET_DIR)/usr/lib/dbus-1.0
 endef
