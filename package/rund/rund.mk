@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-RUND_VERSION = r11
+RUND_VERSION = r12
 RUND_SITE = $(call github,kurt-vd,rund,$(RUND_VERSION))
 RUND_LICENSE = GPLv3
 RUND_LICENSE_FILES = LICENSE
