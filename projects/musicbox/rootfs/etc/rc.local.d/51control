@@ -83,7 +83,9 @@ amp)
 *)
 	echo heartbeat > /sys/class/leds/led0/trigger
 	echo 0 > /sys/class/leds/led1/brightness
-	runc add inputevent --long=0.35 /dev/input/event0 `readlink -f "$0"` ctrl
+	for DEV in /dev/input/event*; do
+		runc add inputevent --long=0.35 "$DEV" `readlink -f "$0"` ctrl
+	done
 	runc add `readlink -f "$0"` amp
 	;;
 esac
