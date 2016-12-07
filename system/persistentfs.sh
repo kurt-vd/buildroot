@@ -39,6 +39,10 @@ if ! grep " $TMPDIR " /proc/mounts > /dev/null; then
 	NEWFS=1
 fi
 
+if [ -f "${TMPDIR}/etc/hostname" ]; then
+	hostname -F "${TMPDIR}/etc/hostname"
+fi
+
 for DIR in @@DIRS@@ @@DIRS_AUTO@@; do
 	if [ "$NEWFS" = "1" ] || [ ! -e "${TMPDIR}/${DIR}" ]; then
 		mkdir -p `dirname "${TMPDIR}/${DIR}"`
