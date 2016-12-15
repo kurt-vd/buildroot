@@ -1,7 +1,5 @@
 #!/bin/sh
 
-NEWFS=0
-
 TMPDIR=/tmp/dat-$$
 mkdir -p "$TMPDIR"
 
@@ -22,7 +20,6 @@ mount_vardat() {
 		echo "[dat] mount $DATDEV failed!"
 		return 1;
 	fi
-	NEWFS=1
 	return 0
 }
 
@@ -36,7 +33,6 @@ done
 if ! grep " $TMPDIR " /proc/mounts > /dev/null; then
 	echo "[dat] mount TMP"
 	mount -t tmpfs dat "$TMPDIR"
-	NEWFS=1
 fi
 
 if [ -f "${TMPDIR}/etc/hostname" ]; then
@@ -44,10 +40,11 @@ if [ -f "${TMPDIR}/etc/hostname" ]; then
 fi
 
 for DIR in @@DIRS@@ @@DIRS_AUTO@@; do
-	if [ "$NEWFS" = "1" ] || [ ! -e "${TMPDIR}/${DIR}" ]; then
-		mkdir -p `dirname "${TMPDIR}/${DIR}"`
-		rsync -au "/$DIR" "${TMPDIR}/${DIR}"
-	fi
+	# make sure the directory exists (important on new filesystem)
+	mkdir -p `dirname "${TMPDIR}/${DIR}"`
+	# rsync missing files
+	rsync -au --ignore-existing "/$DIR" "${TMPDIR}/"
+	# put in place
 	mount --bind "${TMPDIR}/${DIR}" "/$DIR"
 done
 
