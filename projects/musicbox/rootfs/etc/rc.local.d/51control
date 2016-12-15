@@ -9,6 +9,11 @@ AMP=/sys/class/leds/amplifier
 case "$1" in
 ctrl)
         while read TIME CODE VALUE; do
+	case "$CODE:$VALUE" in
+	KEY_SYSRQ:long)
+		poweroff
+		;;
+	esac
 	if timeofday 6h45 19h15; then
 		NUM=1
 		# only process keyup
