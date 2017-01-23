@@ -50,18 +50,16 @@
 					linux,code = <6>;
 				};
 			};
-			/*
 			switches {
 				compatible = "gpio-keys";
 				#address-cells = <0>;
 				#size-cells = <0>;
 
 				sysrq {
-					gpios = <&gpio 17 1>;
+					gpios = <&gpio 12 1>;
 					linux,code = <99>;
 				};
 			};
-			*/
 		};
 	};
 
@@ -74,7 +72,7 @@
 
 				mcpm {
 					label = "mcpm";
-					gpios = <&gpio 12 0>;
+					gpios = <&gpio 17 0>;
 					linux,default-trigger = "none";
 				};
 				amplifier {
@@ -95,15 +93,13 @@
 				brcm,pins = <25 24 23 22 27>;
 				brcm,function = <0 0 0 0 0>;
 			};
-			/*
 			switches_pins: switches_pins {
-				brcm,pins = <17>;
+				brcm,pins = <12>;
 				brcm,function = <0>;
 			};
-			*/
 			mcpmleds_pins: mcpmleds_pins {
 				/* set pins as output */
-				brcm,pins = <12 5>;
+				brcm,pins = <17 5>;
 				brcm,function = <1 1>;
 			};
 		};
