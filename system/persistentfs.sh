@@ -40,10 +40,11 @@ if [ -f "${TMPDIR}/etc/hostname" ]; then
 fi
 
 for DIR in @@DIRS@@ @@DIRS_AUTO@@; do
+	PARENT=`dirname "${TMPDIR}/${DIR}"`
 	# make sure the directory exists (important on new filesystem)
-	mkdir -p `dirname "${TMPDIR}/${DIR}"`
+	mkdir -p "${PARENT}"
 	# rsync missing files
-	rsync -au --ignore-existing "/$DIR" "${TMPDIR}/"
+	rsync -au --ignore-existing "/$DIR" "${PARENT}/"
 	# put in place
 	mount --bind "${TMPDIR}/${DIR}" "/$DIR"
 done
