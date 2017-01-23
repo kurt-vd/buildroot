@@ -1,0 +1,22 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2708";
+
+	fragment@0 {
+		target = <&act_led>;
+		__overlay__ {
+			label = "ACT";
+			linux,default-trigger = "heartbeat";
+		};
+	};
+
+	fragment@1 {
+		target = <&pwr_led>;
+		__overlay__ {
+			label = "PWR";
+			linux,default-trigger = "none";
+		};
+	};
+};

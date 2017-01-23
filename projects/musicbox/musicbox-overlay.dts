@@ -108,16 +108,4 @@
 			};
 		};
 	};
-
-	fragment@5 {
-		target = <&fb>;
-		__overlay__ {
-			status = "disabled";
-		};
-	};
-
-	__overrides__ {
-		hdmi = <&fb>,"status";
-
-	};
 };

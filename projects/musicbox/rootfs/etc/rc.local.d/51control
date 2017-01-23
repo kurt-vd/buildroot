@@ -84,8 +84,8 @@ amp)
 	done
 	;;
 *)
-	echo heartbeat > /sys/class/leds/led0/trigger
-	echo 0 > /sys/class/leds/led1/brightness
+	echo heartbeat > /sys/class/leds/ACT/trigger
+	echo 0 > /sys/class/leds/PWR/brightness
 	for DEV in /dev/input/event*; do
 		runc add inputevent --long=0.35 "$DEV" `readlink -f "$0"` ctrl
 	done
