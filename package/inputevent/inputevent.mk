@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-INPUTEVENT_VERSION = r13
+INPUTEVENT_VERSION = r15
 INPUTEVENT_SITE = git://github.com/kurt-vd/inputevent.git
 #INPUTEVENT_SITE = $(call github,kurt-vd,rund,$(INPUTEVENT_VERSION))
 INPUTEVENT_LICENSE = GPLv3
