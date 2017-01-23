@@ -9,50 +9,37 @@ AMP=/sys/class/leds/amplifier
 case "$1" in
 ctrl)
         while read TIME CODE VALUE; do
+	if timeofday 6h45 19h15; then
+		TYPE=d
+	else
+		TYPE=n
+	fi
+	NUM=1
+	# only process keyup
 	case "$CODE:$VALUE" in
 	KEY_SYSRQ:long)
 		poweroff
 		;;
+	KEY_1:1)
+		mplay $NUM playlist z${TYPE}1
+		;;
+	KEY_2:1)
+		mplay $NUM playlist z${TYPE}2
+		;;
+	KEY_3:1)
+		mplay $NUM playlist z${TYPE}3
+		;;
+	KEY_4:1)
+		mplay $NUM playlist z${TYPE}4
+		;;
+	KEY_5:1)
+		mplay $NUM playlist z${TYPE}5
+		;;
+	*:long)
+		mpc -q clear
+		# leave qeueue empty
+		;;
 	esac
-	if timeofday 6h45 19h15; then
-		NUM=1
-		# only process keyup
-		case "$CODE:$VALUE" in
-		KEY_1:0)
-			mplay $NUM playlist rightrear
-			;;
-		KEY_2:0)
-			mplay $NUM playlist rightfront
-			;;
-		KEY_3:0)
-			mplay $NUM playlist middle
-			;;
-		KEY_4:0)
-			mplay $NUM playlist leftfront
-			;;
-		KEY_5:0)
-			mplay $NUM playlist leftrear
-			;;
-		*:long)
-			mpc -q clear
-			# leave qeueue empty
-			;;
-		esac
-	else
-		NUM=1
-		case "$CODE:$VALUE" in
-		KEY_1:1|KEY_2:1)
-			mplay $NUM playlist nightright
-			;;
-		KEY_3:1)
-			mpc -q clear
-			# leave qeueue empty
-			;;
-		KEY_4:1|KEY_5:1)
-			mplay $NUM playlist nightleft
-			;;
-		esac
-	fi
         done
         ;;
 amp)
