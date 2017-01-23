@@ -1,7 +1,11 @@
 #!/bin/sh
 
-TMPDIR=/tmp/dat-$$
-mkdir -p "$TMPDIR"
+if [ -d /nv ]; then
+	TMPDIR=/nv
+else
+	TMPDIR=/tmp/dat-$$
+	mkdir -p "$TMPDIR"
+fi
 
 mount_vardat() {
 	DATDEV="$1"
@@ -49,5 +53,7 @@ for DIR in @@DIRS@@ @@DIRS_AUTO@@; do
 	mount --bind "${TMPDIR}/${DIR}" "/$DIR"
 done
 
-umount "$TMPDIR"
-rmdir "$TMPDIR"
+if [ "$TMPDIR" != /nv ]; then
+	umount "$TMPDIR"
+	rmdir -f "$TMPDIR"
+fi
