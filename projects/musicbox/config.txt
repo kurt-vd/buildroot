@@ -20,6 +20,10 @@ gpu_mem=32
 #gpu_mem_512=100
 #gpu_mem_1024=100
 
+disable_splash=1
+boot_delay=0
+#enable_uart=0
+
 # enable i2c busses
 dtparam=i2c1=on
 #dtparam=i2c0=on
@@ -27,9 +31,8 @@ dtparam=i2c1=on
 dtparam=uart0=on
 
 #dtdebug=on
+dtoverlay=rpi-led
 dtoverlay=musicbox
 dtparam=audio=on
 #dtoverlay=hifiberry-dac
-# multiple overlays are allowed
-#dtoverlay=explorer
 
