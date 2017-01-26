@@ -34,9 +34,9 @@ function install_extra_dtb_overlays
 		echo "Using $DTC"
 	fi
 	for DTS in $EXTRADIR/*-overlay.dts; do
-		DTSNAME=`basename ${DTS%%.dts}`
+		DTSNAME=`basename ${DTS%%-overlay.dts}`
 		echo "Compile $DTSNAME"
-		$DTC -@ -O dtb $DTS -o $IMGDIR/bootfs/overlays/${DTSNAME}.dtb
+		$DTC -@ -O dtb $DTS -o $IMGDIR/bootfs/overlays/${DTSNAME}.dtbo
 	done
 }
 
