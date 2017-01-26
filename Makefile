@@ -85,6 +85,16 @@ all:
 # Set and export the version string
 export BR2_VERSION := 2016.11.1
 
+# find GIT version, and store in BR2_VERSION
+BR2_GIT_VERSION := $(shell git describe --exact-match 2>/dev/null)
+ifeq ($(BR2_GIT_VERSION),)
+# try harder, and strip the remainder
+BR2_GIT_VERSION := $(shell git describe  2>/dev/null | sed -e "s/-[^-]*-[^-]*$$//g")
+endif
+ifneq ($(BR2_GIT_VERSION),)
+	export BR2_VERSION := $(BR2_VERSION)+$(BR2_GIT_VERSION)
+endif
+
 # Save running make version since it's clobbered by the make package
 RUNNING_MAKE_VERSION := $(MAKE_VERSION)
 
