@@ -14,31 +14,29 @@ ctrl)
 	else
 		TYPE=n
 	fi
-	NUM=1
 	# only process keyup
 	case "$CODE:$VALUE" in
 	KEY_SYSRQ:long)
 		poweroff
 		;;
-	KEY_1:1)
-		mplay $NUM playlist z${TYPE}1
+	KEY_?:1)
+		# TODO
+		# stop when playing
+		# start new when stopped
+		eval export `mpdstate -1 | sed -e "s/\t/=/" -e "s/:/_/g" -e "s/^/mpd_/g"`
+		if [ "$mpd_state" == "play" ]; then
+			# stop
+			mpc -q clear
+		else
+			# mpc -q clear
+			mplay 1 playlist z${TYPE}${CODE##KEY_}
+		fi
 		;;
-	KEY_2:1)
-		mplay $NUM playlist z${TYPE}2
-		;;
-	KEY_3:1)
-		mplay $NUM playlist z${TYPE}3
-		;;
-	KEY_4:1)
-		mplay $NUM playlist z${TYPE}4
-		;;
-	KEY_5:1)
-		mplay $NUM playlist z${TYPE}5
-		;;
-	*:long)
-		mpc -q clear
-		# leave qeueue empty
-		;;
+	#*:long)
+	#	not really usefull if a short keypress toggles between play & pause
+	#	mpc -q clear
+	#	# leave qeueue empty
+	#	;;
 	esac
         done
         ;;
@@ -52,7 +50,7 @@ amp)
 	mpdstate | while read PROP VALUE; do
 	case "$PROP:$VALUE" in
 	state:play)
-		if timeofday 8h00 19h00; then
+		if timeofday 8h00 18h30; then
 			echo timer > $LED/trigger
 			echo 150 > $LED/delay_on
 			echo 150 > $LED/delay_off
@@ -74,7 +72,7 @@ amp)
 	echo heartbeat > /sys/class/leds/ACT/trigger
 	echo 0 > /sys/class/leds/PWR/brightness
 	for DEV in /dev/input/event*; do
-		runc add inputevent --long=0.35 "$DEV" `readlink -f "$0"` ctrl
+		runc add inputevent --long=2 "$DEV" `readlink -f "$0"` ctrl
 	done
 	runc add `readlink -f "$0"` amp
 	;;
