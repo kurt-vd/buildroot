@@ -1,0 +1,9 @@
+config BR2_PACKAGE_DVBFEMON
+	bool "dvbfemon"
+	help
+	  dvbfemon is a simple tool to monitor the DVB tuner signal status
+	  like during antenna positioning.
+	  It prints some relevant parameters to stdout.
+
+	  https://github.com/kurt-vd/dvbvemon
+
