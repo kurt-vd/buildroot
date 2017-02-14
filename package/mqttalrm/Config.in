@@ -1,0 +1,16 @@
+config BR2_PACKAGE_MQTTALRM
+	bool "MQTT Alarm clock"
+	select BR2_PACKAGE_MOSQUITTO
+	help
+	  mqttalrm is a set of tools to compose an alarm clock
+	  using MQTT to cooperate.
+	  The system also provides a Web GUI to control/monitor
+	  the alarm clock.
+
+if BR2_PACKAGE_MQTTALRM
+config BR2_PACKAGE_MQTTALRM_WEBGUI
+	bool "install WEB gui"
+	select BR2_PACKAGE_LIBWEBSOCKETS
+	help
+	  Say y to install the alarm.html on the target system
+endif
