@@ -24,6 +24,17 @@ ctrl)
 		poweroff
 		;;
 	KEY_?:1)
+		# save last touch time
+		PREVTOUCH=`stat -f '%Y' /tmp/btntouched`
+		touch /tmp/btntouched
+		# test for 'start sleep timer'
+		if timeofday 18h00 20h00; then
+			if [ $(( `date '+%s' - "$PREVTOUCH" )) -gt 3600]; then
+				# first touch since last 2 hours. Start sleep timer
+				mosquitt_pub -t alarms/sleeptimer/state -m on
+				continue
+			fi
+		fi
 		# stop when playing
 		# start new when stopped
 		eval export `mpdstate -1 | sed -e "s/\t/=/" -e "s/:/_/g" -e "s/^/mpd_/g"`
