@@ -6,6 +6,10 @@ echo "[`ktstamp -k`] Start control"
 LED=/sys/class/leds/mcpm
 AMP=/sys/class/leds/amplifier
 
+# kill entire group, after unregistering the trap handler
+# This will successfully kill child processes in a pipe
+trap 'trap - TERM INT; kill -TERM -$$' TERM INT
+
 case "$1" in
 ctrl)
         while read TIME CODE VALUE; do
@@ -20,7 +24,6 @@ ctrl)
 		poweroff
 		;;
 	KEY_?:1)
-		# TODO
 		# stop when playing
 		# start new when stopped
 		eval export `mpdstate -1 | sed -e "s/\t/=/" -e "s/:/_/g" -e "s/^/mpd_/g"`
@@ -40,6 +43,12 @@ ctrl)
 	esac
         done
         ;;
+alrm)
+	mosquitto_sub -v -t alarms/+/state -t alarms//alarms | while read TOPIC VALUE; do
+		ALARMNAME=`echo "$TOPIC" | sed -"s,/[^/]*$,,g" -e "s,^.*/,,g"`
+		/root/alarm.sh "$ALARMNAME" "$VALUE"
+	done
+	;;
 amp)
 	# emit MPD's play state to a (green) led
 
