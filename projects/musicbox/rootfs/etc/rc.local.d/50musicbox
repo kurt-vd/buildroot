@@ -8,6 +8,14 @@ if [ -f /srv/etc/config ]; then
 	. /srv/etc/config
 fi
 
+{
+	echo "[`ktstamp -k`] Start alarms $NAME"
+	runc add USER=nobody mqttalrm -v 'alarms/+/+'
+	runc add USER=nobody mqttoff  -v -r 'off' -s 'timeoff' 'alarms/+/state' 'alarms/+/statetimeoff'
+	runc add USER=nobody mqttnow  -v -s '/fmtnow' 'state/+/fmtnow'
+	runc add httpd -f -h /usr/share/www -c /etc/httpd.conf
+} &
+
 if ! [ -d /srv/music ]; then
 	echo "[`ktstamp -k`] mount music"
 	# btrfs
@@ -30,7 +38,7 @@ fi
 	chown mpd:mpd -R /var/lib/mpd
 
 	runc add mpd --no-daemon
-	runc add ympd -w 80 -u nobody
+	runc add ympd -w 81 -u nobody
 
 	sockwait /var/run/avahi-daemon/socket
 

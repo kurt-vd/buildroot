@@ -1,4 +1,4 @@
 # MIN HOUR DAY MONTH DAYOFWEEK CMD
 
-0 7 * * 1-5 /root/wakeup.sh
+#0 7 * * 1-5 /root/alarm.sh wakkerwekker on
 17 4 * * * /root/ntp.sh
