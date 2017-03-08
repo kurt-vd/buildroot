@@ -33,10 +33,6 @@ fi
 	#aplay /etc/test.wav
 	#echo 0 > $AMP/brightness
 
-	mkdir -p /var/lib/mpd
-	mkdir -p /var/lib/mpd/playlists
-	chown mpd:mpd -R /var/lib/mpd
-
 	runc add mpd --no-daemon
 	runc add ympd -w 81 -u nobody
 
