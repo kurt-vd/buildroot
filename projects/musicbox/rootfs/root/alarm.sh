@@ -15,6 +15,9 @@ sleeptimer:on)
 	mpc volume 80
 	mplay 100 playlist "$ALARM"
 	;;
+sleeptimer:snoozed)
+	mosquitto_pub -r -q 1 -t alarms/$ALARM/state -m off
+	;;
 *:on)
 	mpc -q repeat off
 	mpc -q consume on

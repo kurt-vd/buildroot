@@ -85,7 +85,7 @@ amp)
 		echo 0 > $LED/brightness
 		echo 0 > $AMP/brightness
 		# snooze all pending alarms when mpd stops
-		mosquitto_pub -t alarms//snooze -n
+		mosquitto_pub -t alarms//dismiss -n
 		;;
 	esac
 	done
