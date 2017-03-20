@@ -54,7 +54,7 @@ ctrl)
 			# stop
 			mpc -q clear
 		else
-			# mpc -q clear
+			mpc -q clear
 			mplay 1 playlist z${TYPE}${CODE##KEY_}
 		fi
 		;;
