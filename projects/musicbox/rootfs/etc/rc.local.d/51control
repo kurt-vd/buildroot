@@ -6,6 +6,15 @@ echo "[`ktstamp -k`] Start control"
 LED=/sys/class/leds/mcpm
 AMP=/sys/class/leds/amplifier
 
+# configs
+PLAYLISTDAY="6h45 19h15"
+LEDDAY="8h00 18h30"
+SLEEPTIMER="18h00 20h30"
+
+if [ -f /root/config ]; then
+	. /root/config
+fi
+
 # kill entire group, after unregistering the trap handler
 # This will successfully kill child processes in a pipe
 trap 'trap - TERM INT; kill -TERM -$$' TERM INT
@@ -13,7 +22,7 @@ trap 'trap - TERM INT; kill -TERM -$$' TERM INT
 case "$1" in
 ctrl)
         while read TIME CODE VALUE; do
-	if timeofday 6h45 19h15; then
+	if timeofday $PLAYLISTDAY; then
 		TYPE=d
 	else
 		TYPE=n
@@ -31,7 +40,7 @@ ctrl)
 		fi
 		touch /tmp/btntouched
 		# test for 'start sleep timer'
-		if timeofday 18h00 20h00; then
+		if timeofday $SLEEPTIMER; then
 			if [ $(( `date '+%s'` - $PREVTOUCH )) -gt 3600 ]; then
 				# first touch since last 2 hours. Start sleep timer
 				mosquitto_pub -t alarms/sleeptimer/state -m on
@@ -73,7 +82,7 @@ amp)
 	mpdstate | while read PROP VALUE; do
 	case "$PROP:$VALUE" in
 	state:play)
-		if timeofday 8h00 18h30; then
+		if timeofday $LEDDAY; then
 			echo timer > $LED/trigger
 			echo 150 > $LED/delay_on
 			echo 150 > $LED/delay_off

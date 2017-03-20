@@ -4,8 +4,8 @@ NAME=`hostname`
 AMP=/sys/class/leds/amplifier
 sed -i -e "s,^zeroconf_name.*$,zeroconf_name \"$NAME\",g" /etc/mpd.conf
 
-if [ -f /srv/etc/config ]; then
-	. /srv/etc/config
+if [ -f /root/config ]; then
+	. /root/config
 fi
 
 {

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# configs
+
+# time for using the daytime playlists
+PLAYLISTDAY="6h45 19h15"
+# time for using LED daytime pattern
+LEDDAY="8h00 18h30"
+# time for triggering sleeptimer on touch
+SLEEPTIMER="18h00 20h30"
