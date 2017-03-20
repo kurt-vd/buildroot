@@ -25,13 +25,16 @@ ctrl)
 		;;
 	KEY_?:1)
 		# save last touch time
-		PREVTOUCH=`stat -f '%Y' /tmp/btntouched`
+		PREVTOUCH=0
+		if [ -f /tmp/btntouched ]; then
+			PREVTOUCH=`stat -c '%Y' /tmp/btntouched`
+		fi
 		touch /tmp/btntouched
 		# test for 'start sleep timer'
 		if timeofday 18h00 20h00; then
-			if [ $(( `date '+%s'` - "$PREVTOUCH" )) -gt 3600]; then
+			if [ $(( `date '+%s'` - $PREVTOUCH )) -gt 3600 ]; then
 				# first touch since last 2 hours. Start sleep timer
-				mosquitt_pub -t alarms/sleeptimer/state -m on
+				mosquitto_pub -t alarms/sleeptimer/state -m on
 				continue
 			fi
 		fi
