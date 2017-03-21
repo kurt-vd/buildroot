@@ -16,6 +16,11 @@ fi
 	runc add httpd -f -h /usr/share/www -c /etc/httpd.conf
 } &
 
+{
+	echo "[`ktstamp -k`] Preset MQTT"
+	mqttimport < /etc/mqtt-init.txt
+} &
+
 if ! [ -d /srv/music ]; then
 	echo "[`ktstamp -k`] mount music"
 	# btrfs
