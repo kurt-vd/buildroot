@@ -8,3 +8,7 @@ PLAYLISTDAY="6h45 19h15"
 LEDDAY="8h00 18h30"
 # time for triggering sleeptimer on touch
 SLEEPTIMER="18h00 20h30"
+
+# volumes
+#VOLLO=80
+#VOLHI=92

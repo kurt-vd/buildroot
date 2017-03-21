@@ -5,6 +5,13 @@ if [ "$#" != 2 ]; then
 	exit 1
 fi
 
+VOLHI=92
+VOLLO=80
+
+if [ -f /root/config ]; then
+	. /root/config
+fi
+
 ALARM="$1"
 VALUE="$2"
 shift
@@ -12,13 +19,13 @@ shift
 
 case "$ALARM:$VALUE" in
 sleeptimer:on)
-	mpc volume 80
+	mpc volume $VOLLO
 	mplay 100 playlist "$ALARM"
 	;;
 *:on)
 	mpc -q repeat off
 	mpc -q consume on
-	mpc -q volume 92
+	mpc -q volume $VOLHI
 
 	mplay 100 playlist "$ALARM"
 	;;
