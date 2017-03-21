@@ -12,6 +12,7 @@ cat <<EOF
 <h1>Musicbox Home: `hostname`</h1>
 <h2><a href="/alarm.html">Alarms</a></h2>
 <h2><a href="http://`echo $HTTP_HOST`:81">MPD</a>
+<h2><a href="/status.cgi">status</a></h2>
 </body>
 </html>
 EOF
