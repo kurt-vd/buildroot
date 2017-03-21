@@ -44,6 +44,11 @@ if [ -f "${TMPDIR}/etc/hostname" ]; then
 fi
 
 for DIR in @@DIRS@@ @@DIRS_AUTO@@; do
+	if [ ! -e "/${DIR}" ]; then
+		# if the directory does not exist on the rootfs skeleton
+		# then do not sync it
+		continue
+	fi
 	PARENT=`dirname "${TMPDIR}/${DIR}"`
 	# make sure the directory exists (important on new filesystem)
 	mkdir -p "${PARENT}"
