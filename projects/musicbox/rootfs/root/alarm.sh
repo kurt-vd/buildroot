@@ -22,6 +22,12 @@ sleeptimer:1)
 	mpc volume $VOLLO
 	mplay 100 playlist "$ALARM"
 	;;
+stilletjes:1)
+	mpc volume $VOLLO
+	;;
+stilletjes:0)
+	mpc volume $VOLHI
+	;;
 *:1)
 	mpc -q repeat off
 	mpc -q consume on

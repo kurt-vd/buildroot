@@ -1,5 +1,8 @@
 alarms/wakkerwekker/alarm 7h00
 alarms/wakkerwekker/repeat mdwdv--
 alarms/wakkerwekker/timer 1h
+alarms/stilletjes/start 18h30
+alarms/stilletjes/stop 7h10
+alarms/stilletjes/repeat mdwdvzz
 alarms/sleeptimer/timer 20m
 state/time/fmtnow %a, %H:%M:%S
