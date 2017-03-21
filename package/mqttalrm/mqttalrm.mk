@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-MQTTALRM_VERSION = r4
+MQTTALRM_VERSION = r7
 MQTTALRM_SITE = $(call github,kurt-vd,mqttalrm,$(MQTTALRM_VERSION))
 MQTTALRM_LICENSE = GPLv3
 MQTTALRM_LICENSE_FILES = COPYING

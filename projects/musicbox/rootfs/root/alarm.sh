@@ -18,18 +18,18 @@ shift
 shift
 
 case "$ALARM:$VALUE" in
-sleeptimer:on)
+sleeptimer:1)
 	mpc volume $VOLLO
 	mplay 100 playlist "$ALARM"
 	;;
-*:on)
+*:1)
 	mpc -q repeat off
 	mpc -q consume on
 	mpc -q volume $VOLHI
 
 	mplay 100 playlist "$ALARM"
 	;;
-*)
+*:0|*:snoozed)
 	mpc -q pause
 	;;
 esac
