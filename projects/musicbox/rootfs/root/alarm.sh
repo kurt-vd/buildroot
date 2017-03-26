@@ -22,6 +22,12 @@ sleeptimer:1)
 	mpc -q volume $VOLLO
 	mplay 100 playlist "$ALARM"
 	;;
+sleeptimer:0)
+	# play current song, no more
+	mpc -q crop
+	# add 1 goodnight song
+	mplay 1 playlist "zn3"
+	;;
 stilletjes:1)
 	mpc -q volume $VOLLO
 	;;
