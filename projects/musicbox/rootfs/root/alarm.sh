@@ -19,14 +19,14 @@ shift
 
 case "$ALARM:$VALUE" in
 sleeptimer:1)
-	mpc volume $VOLLO
+	mpc -q volume $VOLLO
 	mplay 100 playlist "$ALARM"
 	;;
 stilletjes:1)
-	mpc volume $VOLLO
+	mpc -q volume $VOLLO
 	;;
 stilletjes:0)
-	mpc volume $VOLHI
+	mpc -q volume $VOLHI
 	;;
 *:1)
 	mpc -q repeat off
