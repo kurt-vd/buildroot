@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ -z "$1" ] || [ -z "$2" ] ; then
-	echo "Wrong arguments" >&2
+	echo "$0 $@: Wrong arguments" >&2
 	exit 1
 fi
 
@@ -9,10 +9,11 @@ IFACE="$1"
 
 case "$2" in
 up)
-	exec udhcpc -i "$IFACE" -f -R
+	exec udhcpc -i "$IFACE" -R
 	;;
 down)
 	pkill -f "udhcp.*$IFACE"
+	ip addr flush "$IFACE"
 	;;
 *)
 	exit 1;
