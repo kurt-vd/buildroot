@@ -22,17 +22,17 @@ sysreboot cadsoft
 # mount necessary filesystems
 mount -n -tproc proc /proc
 mount -n -tsysfs sys /sys
-mount -n -ttmpfs tmp /tmp
-mount -n -ttmpfs run /run
+ROOTFS=`{ df -T /tmp 2> /dev/null || echo "nodev rootfs"; } | tail -n1 | { read DEV TYPE REST; echo $TYPE; }`
+if [ "$ROOTFS" != tmpfs -a "$ROOTFS" != rootfs ]; then
+	mount -n -ttmpfs tmp /tmp
+	mount -n -ttmpfs run /run
+fi
 chmod a+w,+t /tmp
 chmod a+w,+t /run
 
 # start device manager
-DEVFS=`df -T /dev 2> /dev/null | tail -n1 | { read DEV TYPE REST; echo $TYPE; }`
-if [ -z "$DEVFS" ]; then
-	# DF does not find mountpoint for rootfs
-	DEVFS=rootfs
-fi
+DEVFS=`{ df -T /dev 2> /dev/null || echo "nodev rootfs"; } | tail -n1 | { read DEV TYPE REST; echo $TYPE; }`
+
 ## DEVICE MANAGER START
 ## fdev START
 echo "" > /proc/sys/kernel/hotplug
@@ -72,7 +72,8 @@ mkdir -p /dev/pts
 mount -n -tdevpts devpts /dev/pts
 
 # if /dev was a rootfs type, then /media is on rootfs too
-if [ -d /media -a $DEVFS != rootfs ]; then
+MEDIAFS=`{ df -T /media 2> /dev/null || echo "nodev rootfs"; } | tail -n1 | { read DEV TYPE REST; echo $TYPE; }`
+if [ -d /media -a "$MEDIAFS" != rootfs ]; then
 	# mount tmpfs for media mount points
 	mount -n -ttmpfs nodev /media
 fi
