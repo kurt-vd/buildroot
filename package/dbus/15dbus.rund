@@ -1,9 +1,0 @@
-#!/bin/sh
-
-# DBUS system
-{
-	echo "[`ktstamp -k`] Start D-BUS ..."
-	mkdir -p /var/run/dbus
-	rm -f /var/run/messagebus.pid
-	runc add dbus-daemon --system --nofork --nopidfile
-}

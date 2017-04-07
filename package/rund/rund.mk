@@ -61,7 +61,7 @@ define RUND_INSTALL_TARGET_CMDS
 	# install init/shutdown scripts
 	$(INSTALL) -m 755 package/rund/rc.init $(TARGET_DIR)/etc/rc.init
 	$(INSTALL) -m 755 package/rund/rc.shutdown $(TARGET_DIR)/etc/rc.shutdown
-	$(INSTALL) -d $(TARGET_DIR)/etc/rc.local.d
+	# tune rc.init
 	# start getty
 	if [ "$(BR2_TARGET_GENERIC_GETTY)" = "y" ]; then \
 		sed -i $(TARGET_DIR)/etc/rc.init \
@@ -78,6 +78,30 @@ define RUND_INSTALL_TARGET_CMDS
 	if [ "$(BR2_TARGET_GENERIC_REMOUNT_RW)" != "y" ]; then \
 		sed -i $(TARGET_DIR)/etc/rc.init \
 		-e "s/^\(.*remount,rw.*\)/#\1/g"; \
+	fi
+	if ! grep -q CONFIG_SYSLOGD=y $(BUSYBOX_BUILD_CONFIG); then \
+		sed -i $(TARGET_DIR)/etc/rc.local \
+			-e "/## syslog start/,/## syslog end/ d"; \
+	fi
+	if ! grep -q CONFIG_CROND=y $(BUSYBOX_BUILD_CONFIG); then \
+		sed -i $(TARGET_DIR)/etc/rc.local \
+			-e "/## cron start/,/## cron end/ d"; \
+	fi
+	if ! [ "$(BR2_PACKAGE_DROPBEAR)" = "y" ]; then \
+		sed -i $(TARGET_DIR)/etc/rc.init \
+			-e "/## dropbear start/,/## dropbear end/ d"; \
+	fi
+	if ! [ "$(BR2_PACKAGE_MOSQUITTO)" = "y" ]; then \
+		sed -i $(TARGET_DIR)/etc/rc.init \
+			-e "/## mosquitto start/,/## mosquitto end/ d"; \
+	fi
+	if ! [ "$(BR2_PACKAGE_DBUS)" = "y" ]; then \
+		sed -i $(TARGET_DIR)/etc/rc.init \
+			-e "/## dbus start/,/## dbus end/ d"; \
+	fi
+	if ! [ "$(BR2_PACAKAGE_AVAHI)" = "y" ]; then \
+		sed -i $(TARGET_DIR)/etc/rc.init \
+			-e "/## avahi start/,/## avahi end/ d"; \
 	fi
 endef
 

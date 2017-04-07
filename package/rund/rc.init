@@ -105,26 +105,76 @@ if [ -x /etc/persistentfs.sh ]; then
 	/etc/persistentfs.sh
 fi
 
+# restore random seed
+if [ -f /var/cache/random-seed ]; then 
+	echo "[`ktstamp -k`] Set random seed"
+	cat /var/cache/random-seed > /dev/urandom
+fi &
+
 # READY
 echo "[`ktstamp -k`] Start services ..."
 #runc add agetty -i -a root -L ttyS0 115200 vt100
 runc add getty ttyS0 115200 vt100
 
-# start services
-for SVC in /etc/rc.local.d/*; do
-	if [ -x "$SVC" ]; then
-		"$SVC" "$@"
+## syslog start
+# Start logging when /var/log/messages is writable
+if touch /var/log/messages; then
+	echo "[`ktstamp -k`] start syslog"
+	runc add syslogd -n -b5
+	runc add klogd -n
+fi
+## syslog end
+
+## cron start
+if [ -d /var/spool/cron ]; then
+	echo "[`ktstamp -k`] start cron"
+	runc add crond -f
+fi
+## cron end
+
+## dropbear start
+{
+	KEYDIR=/etc/dropbear
+	# Check for the Dropbear RSA key
+	if [ ! -f $KEYDIR/dropbear_rsa_host_key ] ; then
+		echo "[`ktstamp -k`] Generating RSA key ..."
+		dropbearkey -t rsa -f $KEYDIR/dropbear_rsa_host_key > /dev/null
 	fi
-done
+
+	# Check for the Dropbear DSS key
+	if [ ! -f $KEYDIR/dropbear_dss_host_key ] ; then
+		echo "[`ktstamp -k`] Generating DSA key ..."
+		dropbearkey -t dss -f $KEYDIR/dropbear_dss_host_key > /dev/null
+	fi
+	umask 077
+	echo "[`ktstamp -k`] start dropbear ..."
+	runc add dropbear -B -F
+} &
+## dropbear end
+
+## mosquitto start
+echo "[`ktstamp -k`] Start Mosquitto ..."
+runc add mosquitto -c /etc/mosquitto.conf
+## mosquitto end
+
+## dbus start
+{
+	echo "[`ktstamp -k`] Start D-BUS ..."
+	mkdir -p /var/run/dbus
+	rm -f /var/run/messagebus.pid
+	runc add dbus-daemon --system --nofork --nopidfile
+	sockwait /var/run/dbus/system_bus_socket
+
+	## avahi start
+	echo "[`ktstamp -k`] Start AVAHI ..."
+	runc add avahi-daemon --no-proc-title -s &
+	## avahi end
+} &
+## dbus end
 
 if [ -x /etc/rc.local ]; then
 	echo "[`ktstamp -k`] run /etc/rc.local ..."
-	/etc/rc.local "$@"
-fi
-
-if [ -x /opt/etc/rc.local ]; then
-	echo "[`ktstamp -k`] run /opt/etc/rc.local ..."
-	/opt/etc/rc.local "$@"
+	/etc/rc.local boot "$@"
 fi
 
 echo "[`ktstamp -k`] system up"
