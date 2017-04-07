@@ -18,10 +18,12 @@ BCUSDK_CONF_OPTS = \
 	--enable-eibnetipserver \
 	--enable-eibnetiptunnel \
 	--without-pth-test \
+	--enable-usb \
 	--with-pth=$(STAGING_DIR)/usr
 
 BCUSDK_DEPENDENCIES = \
 	libpthsem \
+	libusb \
 	$(if $(BR2_PACKAGE_ARGP_STANDALONE),argp-standalone)
 
 
