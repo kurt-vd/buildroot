@@ -1,8 +1,0 @@
-#!/bin/sh
-
-# Start httpd with /etc/httpd.conf
-if [ -r /etc/httpd.conf ] && [ -d /srv/www ]; then
-	echo "[`ktstamp -k`] start httpd"
-	runc add httpd -f -u nobody -h /srv/www -c /etc/httpd.conf
-fi
-
