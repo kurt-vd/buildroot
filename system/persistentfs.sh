@@ -60,5 +60,5 @@ done
 
 if [ "$TMPDIR" != /nv ]; then
 	umount "$TMPDIR"
-	rmdir -f "$TMPDIR"
+	rmdir "$TMPDIR"
 fi
