@@ -26,6 +26,7 @@ BCUSDK_DEPENDENCIES = \
 	libusb \
 	$(if $(BR2_PACKAGE_ARGP_STANDALONE),argp-standalone)
 
+BCUSDK_AUTORECONF=YES
 
 define BCUSDK_REMOVE_EXAMPLES
 	$(RM) -rf $(TARGET_DIR)/usr/share/bcusdk
