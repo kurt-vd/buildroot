@@ -1,0 +1,181 @@
+#!/bin/sh
+
+# configs
+PLAYLISTDAY="6h45 19h15"
+LEDDAY="8h00 18h30"
+SLEEPTIMER="18h00 20h30"
+
+if [ -f /root/config ]; then
+	. /root/config
+fi
+
+# consts
+LED=/sys/class/leds/mcpm
+AMP=/sys/class/leds/amplifier
+ACT=/sys/class/leds/ACT
+
+function traphandler
+{
+	# kill entire group, after unregistering the trap handler
+	# This will successfully kill child processes in a pipe
+	trap 'trap - TERM INT; kill -TERM -$$' TERM INT
+}
+
+case "$1" in
+boot)
+	# use hostname in the config file
+	NAME=`hostname`
+	sed -i -e "s,^zeroconf_name.*$,zeroconf_name \"$NAME\",g" /etc/mpd.conf
+
+	echo "[`ktstamp -k`] Preset MQTT"
+	mqttimport < /etc/mqtt-init.txt &
+
+	echo "[`ktstamp -k`] Start alarms $NAME"
+	runc add USER=nobody mqttalrm -v 'alarms/+/+'
+	runc add USER=nobody mqttoff  -v -r 'off' -s 'timeoff' 'alarms/+/state' 'alarms/+/statetimeoff'
+	runc add USER=nobody mqttnow  -v -s '/fmtnow' 'state/+/fmtnow'
+	runc add httpd -f -h /usr/share/www -c /etc/httpd.conf
+
+	if ! [ -d /srv/music ]; then
+		echo "[`ktstamp -k`] mount music"
+		# btrfs
+		#mount /dev/mmcblk0p2 /srv -osubvol=+dat,ro,discard,ssd_spread
+		# regular
+		mount /dev/mmcblk0p2 /srv -oro
+	fi
+
+	echo "[`ktstamp -k`] Start musicbox $NAME"
+	# play test sound, mainly for initializing the alsa
+	# output. This make bcm2835-pcm work properly.
+
+	#echo $TESTENABLE > $AMP/brightness
+	#aplay /etc/test.wav
+	#echo 0 > $AMP/brightness
+
+	runc add mpd --no-daemon
+	runc add ympd -w 81 -u nobody
+
+	{
+		sockwait /var/run/avahi-daemon/socket
+
+		echo "[`ktstamp -k`] Start shairport $NAME"
+		runc add shairport-sync -a "$NAME" --port=5000
+
+		echo "[`ktstamp -k`] Start uPNP $NAME"
+		runc add upmpdcli -f "$NAME" -l 0
+	} &
+
+	echo "[`ktstamp -k`] Start interaction"
+	ME=`readlink -f "$0"`
+	echo heartbeat > /sys/class/leds/ACT/trigger
+	echo 0 > /sys/class/leds/PWR/brightness
+	for DEV in /dev/input/event*; do
+		runc add inputevent --long=2 "$DEV" "$ME" input
+	done
+	runc add "$ME" alrm
+	runc add "$ME" amp
+
+	if [ -x /root/rc.local ]; then
+		/root/rc.local
+	fi
+	;;
+input)
+	traphandler
+        while read TIME CODE VALUE; do
+	if timeofday $PLAYLISTDAY; then
+		TYPE=d
+	else
+		TYPE=n
+	fi
+	# only process keyup
+	case "$CODE:$VALUE" in
+	KEY_SYSRQ:long)
+		poweroff
+		;;
+	KEY_?:1)
+		# save last touch time
+		PREVTOUCH=0
+		if [ -f /tmp/btntouched ]; then
+			PREVTOUCH=`stat -c '%Y' /tmp/btntouched`
+		fi
+		touch /tmp/btntouched
+		# test for 'start sleep timer'
+		if timeofday $SLEEPTIMER; then
+			if [ $(( `date '+%s'` - $PREVTOUCH )) -gt 3600 ]; then
+				# first touch since last 2 hours. Start sleep timer
+				mosquitto_pub -t alarms/sleeptimer/state -m on
+				continue
+			fi
+		fi
+		# stop when playing
+		# start new when stopped
+		eval export `mpdstate -1 | sed -e "s/\t/=/" -e "s/:/_/g" -e "s/^/mpd_/g"`
+		if [ "$mpd_state" == "play" ]; then
+			# stop
+			mpc -q clear
+		else
+			mpc -q clear
+			mplay 1 playlist z${TYPE}${CODE##KEY_}
+		fi
+		;;
+	#*:long)
+	#	not really usefull if a short keypress toggles between play & pause
+	#	mpc -q clear
+	#	# leave qeueue empty
+	#	;;
+	esac
+        done
+        ;;
+alrm)
+	traphandler
+	mosquitto_sub -v -t alarms/+/state -t alarms//alarms | while read TOPIC VALUE; do
+		ALARMNAME=`echo "$TOPIC" | sed -e "s,/[^/]*$,,g" -e "s,^.*/,,g"`
+		/root/alarm.sh "$ALARMNAME" "$VALUE"
+	done
+	;;
+amp)
+	traphandler
+	# emit MPD's play state to a (green) led
+
+	echo none > $AMP/trigger
+	echo oneshot > $LED/trigger
+	echo 255 > $LED/brightness
+	sockwait /run/mpd.sock
+	mpdstate | while read PROP VALUE; do
+	case "$PROP:$VALUE" in
+	state:play)
+		if timeofday $LEDDAY; then
+			echo timer > $LED/trigger
+			echo 150 > $LED/delay_on
+			echo 150 > $LED/delay_off
+		else
+			echo none > $LED/trigger
+			echo 255 > $LED/brightness
+		fi
+		echo 255 > $AMP/brightness
+		;;
+	state:*)
+		echo none > $LED/trigger
+		echo 0 > $LED/brightness
+		echo 0 > $AMP/brightness
+		# snooze all pending alarms when mpd stops
+		mosquitto_pub -t alarms//dismiss -n
+		;;
+	esac
+	done
+	;;
+reboot|halt|poweroff)
+	# indicate poweroff
+	echo timer > $LED/trigger
+	echo 50 > $LED/delay_on
+	echo 50 > $LED/delay_off
+	echo timer > $ACT/trigger
+	echo 50 > $ACT/delay_on
+	echo 50 > $ACT/delay_off
+	exit 0
+	;;
+*)
+	exit 1
+	;;
+esac
+

@@ -1,5 +1,0 @@
-#!/bin/sh
-
-if [ -x /root/rc.local ]; then
-	/root/rc.local
-fi
