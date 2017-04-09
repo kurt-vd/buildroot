@@ -31,9 +31,10 @@ boot)
 	mqttimport < /etc/mqtt-init.txt &
 
 	echo "[`ktstamp -k`] Start alarms $NAME"
-	runc add USER=nobody mqttalrm -v 'alarms/+/+'
-	runc add USER=nobody mqttoff  -v -r 'off' -s 'timeoff' 'alarms/+/state' 'alarms/+/statetimeoff'
-	runc add USER=nobody mqttnow  -v -s '/fmtnow' 'state/+/fmtnow'
+	runc add USER=nobody mqttalrm -v 'alarms/+' 'alarms/+/+'
+	runc add USER=nobody mqttimesw -v 'alarms/+' 'alarms/+/+'
+	runc add USER=nobody mqttimer -v 'alarms/+' 'alarms/+/timer'
+	runc add USER=nobody mqttnow -v -s '/fmtnow' 'state/+/fmtnow'
 	runc add httpd -f -h /usr/share/www -c /etc/httpd.conf
 
 	if ! [ -d /srv/music ]; then
@@ -103,7 +104,7 @@ input)
 		if timeofday $SLEEPTIMER; then
 			if [ $(( `date '+%s'` - $PREVTOUCH )) -gt 3600 ]; then
 				# first touch since last 2 hours. Start sleep timer
-				mosquitto_pub -t alarms/sleeptimer/state -m on
+				mosquitto_pub -t alarms/sleeptimer -m 1
 				continue
 			fi
 		fi
@@ -128,8 +129,8 @@ input)
         ;;
 alrm)
 	traphandler
-	mosquitto_sub -v -t alarms/+/state -t alarms//alarms | while read TOPIC VALUE; do
-		ALARMNAME=`echo "$TOPIC" | sed -e "s,/[^/]*$,,g" -e "s,^.*/,,g"`
+	mosquitto_sub -v -t alarms/+ | while read TOPIC VALUE; do
+		ALARMNAME=`echo "$TOPIC" | sed -e "s,^.*/,,g"`
 		/root/alarm.sh "$ALARMNAME" "$VALUE"
 	done
 	;;
