@@ -70,7 +70,7 @@ boot)
 	ME=`readlink -f "$0"`
 	echo heartbeat > /sys/class/leds/ACT/trigger
 	echo 0 > /sys/class/leds/PWR/brightness
-	for DEV in /dev/input/event*; do
+	ls /dev/input/event* 2>/dev/null | while read DEV; do
 		runc add inputevent --long=2 "$DEV" "$ME" input
 	done
 	runc add "$ME" alrm
