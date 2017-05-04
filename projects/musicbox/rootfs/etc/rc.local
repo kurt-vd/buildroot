@@ -21,6 +21,37 @@ function traphandler
 	trap 'trap - TERM INT; kill -TERM -$$' TERM INT
 }
 
+# property-safe sysfs writer
+# usage: sysfs prop value
+function sysfs
+{
+	if [ -w "$1" ]; then
+		echo "$2" > "$1"
+	fi
+}
+
+# function led
+# usage: led LEDNAME TRIGGER EXTRA
+function led
+{
+	LED="$1"
+	case "$2" in
+	timer)
+		sysfs "$LED/trigger" "$2"
+		sysfs "$LED/delay_on" $3
+		sysfs "$LED/delay_off" $3
+		;;
+	off)
+		sysfs "$LED/trigger" "none"
+		sysfs "$LED/brightness" "0"
+		;;
+	on)
+		sysfs "$LED/trigger" "none"
+		sysfs "$LED/brightness" "255"
+		;;
+	esac
+}
+
 case "$1" in
 boot)
 	# use hostname in the config file
@@ -138,27 +169,24 @@ amp)
 	traphandler
 	# emit MPD's play state to a (green) led
 
-	echo none > $AMP/trigger
-	echo oneshot > $LED/trigger
-	echo 255 > $LED/brightness
+	led $AMP off
+	led $LED on
 	sockwait /run/mpd.sock
 	mpdstate | while read PROP VALUE; do
 	case "$PROP:$VALUE" in
 	state:play)
 		if timeofday $LEDDAY; then
-			echo timer > $LED/trigger
-			echo 150 > $LED/delay_on
-			echo 150 > $LED/delay_off
+			led $LED timer 150
 		else
+			led $LED on
 			echo none > $LED/trigger
 			echo 255 > $LED/brightness
 		fi
-		echo 255 > $AMP/brightness
+		led $AMP on
 		;;
 	state:*)
-		echo none > $LED/trigger
-		echo 0 > $LED/brightness
-		echo 0 > $AMP/brightness
+		led $LED off
+		led $AMP off
 		# snooze all pending alarms when mpd stops
 		mosquitto_pub -t alarms//dismiss -n
 		;;
@@ -167,12 +195,8 @@ amp)
 	;;
 reboot|halt|poweroff)
 	# indicate poweroff
-	echo timer > $LED/trigger
-	echo 50 > $LED/delay_on
-	echo 50 > $LED/delay_off
-	echo timer > $ACT/trigger
-	echo 50 > $ACT/delay_on
-	echo 50 > $ACT/delay_off
+	led $LED timer 50
+	led $ACT timer 50
 	exit 0
 	;;
 *)
