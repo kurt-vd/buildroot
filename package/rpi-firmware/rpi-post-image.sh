@@ -45,7 +45,8 @@ if [ -d "$EXTRADIR" ]; then
 fi
 
 echo "Write kernel"
-perl package/rpi-firmware/mkknlimg $IMGDIR/zImage $IMGDIR/rpi-firmware/zImage
+#perl package/rpi-firmware/mkknlimg $IMGDIR/zImage $IMGDIR/rpi-firmware/zImage
+cp $IMGDIR/zImage $IMGDIR/rpi-firmware/zImage
 # find+copy smallest initramfs
 RAMFS=`cd ${IMGDIR}; \ls -rSL rootfs.cpio.* 2>/dev/null | head -n1`
 if [ -n "$RAMFS" ]; then
