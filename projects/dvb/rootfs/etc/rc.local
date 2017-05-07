@@ -1,0 +1,45 @@
+#!/bin/sh
+
+LED=/sys/class/leds/beaglebone:green:usr0
+
+case "$1" in
+boot)
+	#echo "[`ktstamp -k`] Start dvblast"
+	#runc add dvblast -e -r /run/dvblast -f 482000000 -c /var/persistent/etc/dvblast-vrt.conf
+
+	echo "performance" > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+	echo "[`ktstamp -k`] Start MuMuDVB, http"
+	runc add mumudvb -c /etc/mumudvb.conf -dts
+	runc add httpd -f -h /usr/share/www -c /etc/httpd.conf
+
+	echo "[`ktstamp -k`] start input devices"
+	for DEV in /dev/input/event*; do
+		runc add inputevent --long=2 "$DEV" `readlink -f "$0"` input
+	done
+	echo heartbeat > $LED/trigger
+	;;
+input)
+        while read TIME CODE VALUE; do
+	# only process keyup
+	case "$CODE:$VALUE" in
+	KEY_POWER:long)
+		echo default-on > $LED/trigger
+		echo "[`ktstamp -k`] user requested poweroff"
+		poweroff
+		;;
+	KEY_POWER:0)
+		echo "[`ktstamp -k`] press long to poweroff"
+		;;
+	esac
+        done
+        ;;
+reboot|halt|shutdown)
+	# indicate powerdown
+	echo timer > $LED/trigger
+	echo 50 > $LED/delay_on
+	echo 50 > $LED/delay_off
+	;;
+*)
+	exit 1
+	;;
+esac

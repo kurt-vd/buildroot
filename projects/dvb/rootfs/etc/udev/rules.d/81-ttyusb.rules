@@ -1,0 +1,1 @@
+SUBSYSTEM=="tty", KERNEL=="ttyGS?", RUN+="/bin/runc %E{ACTION} getty %k 0 115200"

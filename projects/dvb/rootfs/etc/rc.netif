@@ -1,0 +1,48 @@
+#!/bin/sh
+
+if [ -z "$TTYREDIR" ]; then
+	export TTYREDIR=1
+	exec "$0" "$@" > /dev/console 2>&1
+fi
+
+# fix udev stripping sbin from path
+PATH=/usr/sbin:/sbin:/usr/bin:/bin
+
+case "$ACTION" in
+add|change)
+	# wait until logging (and other writable fs) is ready
+	sockwait -r 0.2 -d /dev/log
+	#source /etc/net.conf
+
+	if [ "$DEVTYPE" = "gadget" ]; then
+		echo "[`ktstamp -k`] $INTERFACE for listen"
+		ip link set "$INTEFACE" up
+		ip addr add 192.168.37.1/24 dev "$INTERFACE"
+		mkdir -p /var/lib/misc/
+		# TODO start dnsmasq?
+		exit 0
+	fi
+
+	case "$INTERFACE" in
+	eth*|usb*)
+		echo "[`ktstamp -k`] $INTERFACE as uplink"
+		runc add IFACE=$INTERFACE ifplugd -i $INTERFACE -u1 -d3 -n -I -r /etc/rc.netiflink
+		;;
+	wlan*)
+		echo "[`ktstamp -k`] $INTERFACE as uplink"
+		runc add IFACE=$INTERFACE wpa_supplicant -i $INTERFACE -c /etc/wpa_supplicant.conf -D nl80211,wext
+		runc add IFACE=$INTERFACE ifplugd -i $INTERFACE -u1 -d3 -n -I -r /etc/rc.netiflink
+		;;
+	esac
+	;;
+remove)
+	case "$INTERFACE" in
+	eth*|wlan*|usb*)
+		echo "[`ktstamp -k`] stop $INTERFACE"
+		runc remove "IFACE=$INTERFACE"
+		# manually kill dhcp clients
+		pkill -f "udhcp.*$IFACE"
+		;;
+	esac
+	;;
+esac

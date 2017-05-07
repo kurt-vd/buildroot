@@ -1,0 +1,3 @@
+# MIN HOUR DAY MONTH DAYOFWEEK CMD
+
+17 4 * * * /root/ntp.sh

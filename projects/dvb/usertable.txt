@@ -1,0 +1,4 @@
+dbus 60 dbus 60 * - - - -
+avahi 61 avahi 61 * - - - -
+- - input 62 * - - - -
+mosquitto 65 nogroup 65534 * /var/lib/mosquitto - - Mosquitto User
