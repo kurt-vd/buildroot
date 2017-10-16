@@ -3,10 +3,9 @@
 # libio
 #
 #############################################################
-LIBIO_VERSION:=v20160411
+LIBIO_VERSION:=v20171016
 LIBIO_GIT:=git://github.com/kurt-vd/libio
 #LIBIO_SOURCE:=libio-$(LIBIO_VERSION).tgz
-LIBIO_DIR:=$(BUILD_DIR)/libio
 LIBIO_BINARY:=io
 LIBIO_TARGET_BINARY:=usr/bin/io
 
