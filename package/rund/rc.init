@@ -66,6 +66,8 @@ echo "[`ktstamp -k`] start services ..."
 {
 	ip link set usb0 up
 	ip addr add 192.168.255.1/24 dev usb0
+	mkdir -p /opt/var/lib/misc
+	touch /opt/var/lib/misc/usb0.leases
 	runc add udhcpd -f /etc/udhcpd-usb0.conf
 } &
 

@@ -3,7 +3,7 @@
 # rund
 #
 #############################################################
-RUND_VERSION:=v0.71
+RUND_VERSION:=r10
 RUND_GIT:=git://github.com/kurt-vd/rund
 RUND_DIR:=$(BUILD_DIR)/rund
 RUND_BINARY:=rund
